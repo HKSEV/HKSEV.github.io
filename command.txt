@@ -1,0 +1,7 @@
+ALTER TABLE MEMBER_TB ADD IS_ADMIN NUMBER DEFAULT 0 NOT NULL;
+
+- 백엔드
+npm install nodemailer
+
+- 프론트엔드
+npm install react-icons
