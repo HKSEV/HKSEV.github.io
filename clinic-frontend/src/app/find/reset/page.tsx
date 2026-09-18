@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useState } from "react";
+import React, { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import usePopup from "@/components/contexts/PopupContext";
 import * as S from "@/assets/css/Login.style";
@@ -53,33 +53,33 @@ export default function ResetPwPage() {
   };
 
   return (
-    <S.Wrapper>
-      <S.Card>
-        <S.Header>
-          <S.PwTitle>새 비밀번호 설정</S.PwTitle> 
-          <S.Description>
+    <S.LoginWrapper>
+      <S.LoginCard>
+        <S.LoginHeader>
+          <S.LoginPwTitle>새 비밀번호 설정</S.LoginPwTitle> 
+          <S.LoginDescription>
             앞으로 사용할 새로운 비밀번호를 입력해 주세요.
-          </S.Description>               
-        </S.Header>
+          </S.LoginDescription>               
+        </S.LoginHeader>
 
-        <S.Form onSubmit={handleResetPassword}>
-          <S.Input
+        <S.LoginForm onSubmit={handleResetPassword}>
+          <S.LoginInput
           type="password"
           name="newPw"
           placeholder='새 비밀번호'
           value={pwData.newPw}
           onChange={handleChange}/>
-          <S.Input
+          <S.LoginInput
           type="password"
           name="confirmNewPw"
           placeholder='새 비밀번호 확인'
           value={pwData.confirmNewPw}
           onChange={handleChange}/>
-          <S.Button type="submit">
+          <S.LoginButton type="submit">
             비밀번호 변경 완료
-          </S.Button>
-        </S.Form>   
-      </S.Card>
-    </S.Wrapper>
+          </S.LoginButton>
+        </S.LoginForm>   
+      </S.LoginCard>
+    </S.LoginWrapper>
   );
 };
