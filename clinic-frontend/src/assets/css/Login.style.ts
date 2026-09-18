@@ -77,6 +77,14 @@ export const LoginButton = styled.button`
   ${C.BlueButtonTheme}
   ${C.TransitionAll}
   margin-top: 10px;
+
+  &:disabled {
+    background-color: #B7B9C1;
+    border-color: #B7B9C1;
+    color: #FFF;
+    cursor: default;
+    opacity: 0.7;
+  }
 `;
 export const LoginDivider = styled.hr`
   margin: 1.5rem 0;

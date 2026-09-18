@@ -9,16 +9,35 @@ export default function ChangePwPage() {
   const router = useRouter();
   const {openPopup, closePopup} = usePopup();
   const [userId, setUserId] = useState("");
-  const [statusText, setStatusText] = useState("");
+  const [alertText, setAlertText] = useState("");
+  const [disabled, setDisabled] = useState(true);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUserId(e.target.value);
+  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setUserId(value);
+
+    try {
+      const response = await fetch("http://127.0.0.1:4000/api/id-check", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({userId: value})
+      });
+      const result = await response.json();
+
+      if (response.ok) {
+        setAlertText("");
+        setDisabled(false);
+      } else {
+        setAlertText(result.message || "존재하지 않는 ID입니다.");
+        setDisabled(true);
+      };
+    } catch (err) {};
   };
 
   const handleGotoPass = async (e: React.FormEvent) => {
     e.preventDefault();
     if(!userId) {
-      setStatusText("아이디를 먼저 입력해주세요.");
+      openPopup("입력 오류", "아이디를 먼저 입력해주세요.");
       return;
     };
 
@@ -33,7 +52,7 @@ export default function ChangePwPage() {
       if (response.ok)
         router.push(`/find/pass?userId=${userId}`);
       else
-        setStatusText(result.message || "존재하지 않는 ID입니다.");
+        openPopup("입력 오류", result.message || "존재하지 않는 ID입니다.");
     } catch (err) {
       console.error("아이디 체크 에러:", err);
       openPopup("서버 오류", "서버와 통신 중 오류가 발생했습니다.");
@@ -58,8 +77,10 @@ export default function ChangePwPage() {
           placeholder="아이디 (User ID)"
           value={userId}
           onChange={handleChange}/>
-          <S.LoginAlertText>{statusText}</S.LoginAlertText>
-          <S.LoginButton type="submit">
+          <S.LoginAlertText>{alertText}</S.LoginAlertText>
+          <S.LoginButton
+          type="submit"
+          disabled={disabled}>
             본인인증 진행하기
           </S.LoginButton>
         </S.LoginForm>
