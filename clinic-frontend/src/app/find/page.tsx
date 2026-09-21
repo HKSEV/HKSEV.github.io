@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import usePopup from "@/components/contexts/PopupContext";
-import * as S from "@/assets/css/Login.style";
+import * as S from "@/assets/css/Style.style";
 
 export default function ChangePwPage() {
   const router = useRouter();
