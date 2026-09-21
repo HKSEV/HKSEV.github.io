@@ -1,4 +1,4 @@
-import styled, { keyframes } from "styled-components";
+import styled from "styled-components";
 import Link from "next/link";
 import * as C from "./Common.style";
 
@@ -147,7 +147,7 @@ ${C.FlexColumn}
   flex: 1;
 `;
 export const DashboardCardLabel = styled.span<{$textColor: string}>`
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 800;
   color: ${({$textColor}) => $textColor};
   text-transform: uppercase;
@@ -190,6 +190,50 @@ export const DashboardBottomSection = styled.section`
     padding: 2rem;
     color: #858796;
   }
+`;
+
+// consult
+export const ConsultContainer = styled.div`
+  
+`;
+export const ConsultHeader = styled.header`
+  
+`;
+export const ConsultTitle = styled.h1`
+  
+`;
+export const ConsultFilterCard = styled.div`
+  
+`;
+export const ConsultInputGroup = styled.div`
+  
+`;
+export const ConsultInput = styled.input`
+  
+`;
+export const ConsultSearchButton = styled.button`
+  
+`;
+export const ConsultTableCard = styled.div`
+  
+`;
+export const ConsultCardHeader = styled.header`
+  
+`;
+export const ConsultCardTitle = styled.h6`
+  
+`;
+export const ConsultTableWrapper = styled.div`
+  
+`;
+export const ConsultTable = styled.table`
+  
+`;
+export const ConsultStatusBadge = styled.span<{$status: string}>`
+  
+`;
+export const ConsultDeleteButton = styled.button`
+  
 `;
 
 // tone
@@ -243,6 +287,7 @@ export const ToneCardHeader = styled.header`
 `;
 export const ToneCardTitle = styled.h6`
   margin: 0;
+  font-size: 1rem;
   font-weight: 700;
   color: #4E73DF;
 `;
@@ -305,4 +350,190 @@ export const ToneSelectedText = styled.div`
   border-top: 1px solid #EAECF4;
   padding-top: 1rem;
   strong { color: #5A5C69; }
+`;
+
+// nav
+export const SetNavContainer = styled.div`
+  width: 100%;
+`;
+export const SetNavHeader = styled.header`
+  ${C.FlexBetween}
+  margin-bottom: 1.5rem;
+`;
+export const SetNavTitle = styled.h1`
+  font-size: 1.5rem;
+  color: #5A5C69;
+  font-weight: 700;
+`;
+export const SetNavSaveButton = styled.button`
+  ${C.FlexCenter}
+  background-color: #4E73DF;
+  color: #FFF;
+  border: none;
+  padding: 0.5rem 1.2rem;
+  border-radius: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  ${C.BoxShadow}
+  ${C.TransitionAll}
+  &:hover { background-color: #2E59D9; }
+`;
+export const SetNavGrid = styled.div`
+  ${C.FlexColumn}
+  gap: 1.5rem;
+`;
+export const SetNavCard = styled.div`
+  background-color: #FFF;
+  border: 1px solid #E3E6F0;
+  border-radius: 0.35rem;
+  ${C.BoxShadow}
+  overflow: hidden;
+`;
+export const SetNavCardHeader = styled.header`
+  background-color: #F8F9FC;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #E3E6F0;
+`;
+export const SetNavCardTitle = styled.h6`
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #4E73DF;
+`;
+export const SetNavCardBody = styled.div`
+  padding: 1.5rem;
+  color: #858796;
+
+  p {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+  }
+`;
+export const SetNavRadioGroup = styled.div`
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+`;
+export const SetNavRadioLabel = styled.label<{$isActive: boolean}>`
+  ${C.FlexCenter}
+  gap: 0.5rem;
+  padding: 0.8rem 1.5rem;
+  border-radius: 0.35rem;
+  ${({$isActive}) => ($isActive ? (`
+    border: 1px solid #4E73DF;
+    background-color: #EAECF4;
+    color: #4E73DF;
+  `) : (`
+    border: 1px solid #D1D3E2;
+    background-color: #FFF;
+    color: #858796;
+  `))}
+  font-weight: 600;
+  cursor: pointer;
+  ${C.TransitionAll}
+  &:hover { background-color: #F8F9FC; }
+`;
+export const SetNavInputWrapper = styled.div`
+  ${C.FlexColumn}
+  gap: 1rem;
+  background-color: #F8F9FC;
+  padding: 1.5rem;
+  border-radius: 0.35rem;
+  border: 1px solid #E3E6F0;
+`;
+export const SetNavLabel = styled.label`
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #5A5C69;
+  white-space: nowrap;
+  flex-shrink: 0;
+`;
+export const SetNavInput = styled.input`
+  width: 100%;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  background-color: #FFF;
+  border: 1px solid #D1D3E2;
+  border-radius: 0.35rem;
+  outline: none;
+  ${C.TransitionAll}
+  &:focus { border-color: #4E73DF; }
+`;
+export const SetNavFileInputWrapper = styled.div`
+  ${C.FlexColumn}
+  align-items: center;
+  gap: 0.7rem;
+  
+  .file-name {
+    font-size: 0.9rem;
+    color: #858796;
+  }
+`;
+export const SetNavFileInput = styled.input`
+  display: none;
+`;
+export const SetNavFileLabel = styled.label`
+  background-color: #FFF;
+  border: 1px solid #D1D3E2;
+  padding: 0.5rem 1rem;
+  border-radius: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #5A5C69;
+  width: 10%;
+  cursor: pointer;
+  &:hover { background-color: #EAECF4; }
+`;
+export const SetNavMenuList = styled.ul`
+  flex-wrap: wrap;
+  ${C.FlexCenter}
+  gap: 1rem;
+  background-color: #F8F9FC;
+  padding: 1rem;
+  border-radius: 0.35rem;
+  border: 1px solid #E3E6F0;
+
+  .menu-number {
+    font-weight: 900;
+    color: #B7B9CC;
+    width: 20px;
+  }
+`;
+export const SetNavMenuItem = styled.li`
+  ${C.FlexCenter}
+  gap: 1rem;
+  background-color: #F8F9FC;
+  border-radius: 0.35rem;
+  border: 1px solid #E3E6F0;
+  padding: 1rem;
+  box-sizing: border-box;
+`;
+export const SetNavDeleteButton = styled.button`
+  background-color: transparent;
+  border: none;
+  color: #E74A3B;
+  cursor: pointer;
+  ${C.FlexCenter}
+  padding: 0.5rem;
+  ${C.TransitionAll}
+  &:hover { background-color: #FDEAEA; }
+`;
+export const SetNavAddButton = styled.button`
+  ${C.FlexCenter}
+  width: 100%;
+  border: 1px dashed #B7B9CC;
+  color: #5A5C69;
+  padding: 1rem;
+  border-radius: 0.35rem;
+  font-weight: 600;
+  gap: 0.5rem;
+  ${C.TransitionAll}
+  cursor: pointer;
+
+  &:hover {
+    background-color: #EAECF4;
+    border-color: #858796;
+  }
 `;
