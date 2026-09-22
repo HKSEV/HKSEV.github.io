@@ -24,11 +24,15 @@ export default function Nav() {
     {id: 5, name: "쁘띠 시술", url: "/"},
     {id: 6, name: "커뮤니티", url: "/"},
   ]); // 시안과 동일하게 설정
+  const [previewUrl, setPreviewUrl] = useState<string>("");
 
   // 로고 이미지 파일 선택 핸들러
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length)
-      setLogoFileName(e.target.files[0].name);
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogoFileName(file.name);
+      setPreviewUrl(URL.createObjectURL(file)); 
+    };
   };
 
   // 추가 삭제 변경 핸들러
@@ -63,7 +67,7 @@ export default function Nav() {
       <S.SetNavHeader>
         <S.SetNavTitle>내비게이션 관리</S.SetNavTitle>
         <S.SetNavSaveButton onClick={handleSave}>
-          <FiSave size={18}/>설정 저장하기
+          <FiSave size={18}/>&nbsp;설정 저장하기
         </S.SetNavSaveButton>
       </S.SetNavHeader>
 
@@ -96,20 +100,27 @@ export default function Nav() {
                 placeholder="예:안효범성형외과"/>
               </S.SetNavInputWrapper>
             ) : (
-              <S.SetNavFileInputWrapper>
+              <S.SetNavFileGroup>
                 <S.SetNavLabel>이미지 파일 등록</S.SetNavLabel>
-                <S.SetNavFileInput
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                id="logo-upload"/>
-                <S.SetNavFileLabel htmlFor="logo-upload">
-                  파일 선택
-                </S.SetNavFileLabel>
-                <span className="file-name">
-                  {logoFileName || "선택된 파일이 없습니다."}
-                </span>
-              </S.SetNavFileInputWrapper>
+                <S.SetNavFileInputWrapper>
+                  <S.SetNavFileInput
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  id="logo-upload"/>
+                  <S.SetNavFileLabel htmlFor="logo-upload">
+                    파일 선택
+                  </S.SetNavFileLabel>
+                  <span className="file-name">
+                    {logoFileName || "선택된 파일이 없습니다."}
+                  </span>
+                </S.SetNavFileInputWrapper>
+                {previewUrl && (
+                  <S.SetNavPreview>
+                    <img src={previewUrl} alt="미리보기"/>
+                  </S.SetNavPreview>
+                )}
+              </S.SetNavFileGroup>
             )}
           </S.SetNavCardBody>
         </S.SetNavCard>

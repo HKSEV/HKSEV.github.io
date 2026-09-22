@@ -24,7 +24,7 @@ export default function Tone() {
       <S.ToneHeader>
         <S.ToneTitle>톤앤매너관리</S.ToneTitle>
         <S.ToneSaveButton onClick={handleSave}>
-          <FiSave size={18}/>설정 저장하기
+          <FiSave size={18}/>&nbsp;설정 저장하기
         </S.ToneSaveButton>
       </S.ToneHeader>
 

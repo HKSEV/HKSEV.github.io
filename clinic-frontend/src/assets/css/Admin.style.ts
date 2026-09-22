@@ -193,47 +193,124 @@ export const DashboardBottomSection = styled.section`
 `;
 
 // consult
-export const ConsultContainer = styled.div`
-  
+export const SetConsultContainer = styled.div`
+  width: 100%;
 `;
-export const ConsultHeader = styled.header`
-  
+export const SetConsultHeader = styled.header`
+  ${C.FlexBetween}
+  margin-bottom: 1.5rem;
 `;
-export const ConsultTitle = styled.h1`
-  
+export const SetConsultTitle = styled.h1`
+  font-size: 1.5rem;
+  color: #5A5C69;
+  font-weight: 700;
+  margin: 0;
 `;
-export const ConsultFilterCard = styled.div`
-  
+export const SetConsultFilterCard = styled.div`
+  margin-bottom: 2rem;
+  background-color: #FFF;
+  border: 1px solid #E3E6F0;
+  border-radius: 0.35rem;
+  ${C.BoxShadow}
+  overflow: hidden;
 `;
-export const ConsultInputGroup = styled.div`
-  
+export const SetConsultInputGroup = styled.div`
+  ${C.FlexRight}
+  gap: 0.5rem;
+  padding: 0.8rem;
 `;
-export const ConsultInput = styled.input`
-  
+export const SetConsultInput = styled.input`
+  padding: 0.66rem 1rem;
+  font-size: 0.9rem;
+  background-color: #FFF;
+  border: 1px solid #D1D3E2;
+  border-radius: 0.35rem;
+  outline: none;
+  ${C.TransitionAll}
+  &:focus { border-color: #4E73DF; }
 `;
-export const ConsultSearchButton = styled.button`
-  
+export const SetConsultSearchButton = styled.button`
+  ${C.FlexCenter}
+  ${C.BlueButtonTheme}
+  padding: 0.5rem 1.2rem;
+  border-radius: 0.35rem;
+  border: 1px solid #E3E6F0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  ${C.BoxShadow}
+  ${C.TransitionAll}
 `;
-export const ConsultTableCard = styled.div`
-  
+export const SetConsultTableCard = styled.div`
+  background-color: #FFF;
+  border: 1px solid #E3E6F0;
+  border-radius: 0.35rem;
+  ${C.BoxShadow}
+  overflow: hidden;
 `;
-export const ConsultCardHeader = styled.header`
-  
+export const SetConsultCardHeader = styled.header`
+  background-color: #F8F9FC;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #E3E6F0;
 `;
-export const ConsultCardTitle = styled.h6`
-  
+export const SetConsultCardTitle = styled.h6`
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #4E73DF;
 `;
-export const ConsultTableWrapper = styled.div`
-  
+export const SetConsultTableWrapper = styled.div`
+  width: 100%;
 `;
-export const ConsultTable = styled.table`
+export const SetConsultTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
   
+  thead {
+    background-color: #EAECF4;
+    color: #202020;
+  }
+
+  tbody {
+    color: #5A5C69;
+    font-size: 0.9rem;
+  }
+
+  th, td {
+    text-align: center;
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid #D1D3E2;
+  }
 `;
-export const ConsultStatusBadge = styled.span<{$status: string}>`
-  
+export const SetConsultStatusBadge = styled.span<{$status: string}>`
+  width: 100%;
+  padding: 0.4rem 0.7rem;
+  border-radius: 10rem;
+  font-size: 0.8rem;
+  font-weight: bold;
+  cursor: pointer;
+  ${C.TransitionAll}
+  ${({$status}) => ($status === "대기중" ? (`
+    color: #B45309;
+    background-color: #FEF3C7;
+    &:hover { background-color: #FDE68A; }
+  `) : (`
+    color: #15803D;
+    background-color: #DCFCE7;
+    &:hover { background-color: #BBF7D0; }
+  `))}
 `;
-export const ConsultDeleteButton = styled.button`
-  
+export const SetConsultDeleteButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border: none;
+  color: #E74A3B;
+  cursor: pointer;
+  padding: 0.5rem;
+  ${C.TransitionAll}
+  &:hover { background-color: #FDEAEA; }
 `;
 
 // tone
@@ -252,9 +329,7 @@ export const ToneTitle = styled.h1`
 `;
 export const ToneSaveButton = styled.button`
   ${C.FlexCenter}
-  background-color: #4E73DF;
-  color: #FFF;
-  border: none;
+  ${C.BlueButtonTheme}
   padding: 0.5rem 1.2rem;
   border-radius: 0.35rem;
   font-size: 0.9rem;
@@ -262,7 +337,6 @@ export const ToneSaveButton = styled.button`
   cursor: pointer;
   ${C.BoxShadow}
   ${C.TransitionAll}
-  &:hover { background-color: #2E59D9; }
 `;
 export const ToneCardGrid = styled.div`
   display: grid;
@@ -364,12 +438,11 @@ export const SetNavTitle = styled.h1`
   font-size: 1.5rem;
   color: #5A5C69;
   font-weight: 700;
+  margin: 0;
 `;
 export const SetNavSaveButton = styled.button`
   ${C.FlexCenter}
-  background-color: #4E73DF;
-  color: #FFF;
-  border: none;
+  ${C.BlueButtonTheme}
   padding: 0.5rem 1.2rem;
   border-radius: 0.35rem;
   font-size: 0.9rem;
@@ -377,7 +450,6 @@ export const SetNavSaveButton = styled.button`
   cursor: pointer;
   ${C.BoxShadow}
   ${C.TransitionAll}
-  &:hover { background-color: #2E59D9; }
 `;
 export const SetNavGrid = styled.div`
   ${C.FlexColumn}
@@ -461,10 +533,12 @@ export const SetNavInput = styled.input`
   ${C.TransitionAll}
   &:focus { border-color: #4E73DF; }
 `;
-export const SetNavFileInputWrapper = styled.div`
+export const SetNavFileGroup = styled.div`
   ${C.FlexColumn}
-  align-items: center;
-  gap: 0.7rem;
+  gap: 0.5rem;
+`;
+export const SetNavFileInputWrapper = styled.div`
+  margin-top: 0.5rem;
   
   .file-name {
     font-size: 0.9rem;
@@ -478,13 +552,24 @@ export const SetNavFileLabel = styled.label`
   background-color: #FFF;
   border: 1px solid #D1D3E2;
   padding: 0.5rem 1rem;
+  margin-right: 1rem;
   border-radius: 0.35rem;
   font-size: 0.85rem;
   font-weight: 600;
   color: #5A5C69;
-  width: 10%;
   cursor: pointer;
   &:hover { background-color: #EAECF4; }
+`;
+export const SetNavPreview = styled.div`
+  margin-top: 1rem;
+  
+  img {
+    width: 200px;
+    max-width: 200px;
+    height: auto;
+    border-radius: 0.5rem;
+    object-fit: cover;
+  }
 `;
 export const SetNavMenuList = styled.ul`
   flex-wrap: wrap;
@@ -536,4 +621,610 @@ export const SetNavAddButton = styled.button`
     background-color: #EAECF4;
     border-color: #858796;
   }
+`;
+
+// pop
+export const PopContainer = styled.div`
+  width: 100%;
+`;
+export const PopHeader = styled.header`
+  ${C.FlexBetween}
+  margin-bottom: 1.5rem;
+`;
+export const PopTitle = styled.h1`
+  font-size: 1.5rem;
+  color: #5A5C69;
+  font-weight: 700;
+  margin: 0;
+`;
+export const PopSaveButton = styled.button`
+  ${C.FlexCenter}
+  ${C.BlueButtonTheme}
+  padding: 0.5rem 1.2rem;
+  border-radius: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  ${C.BoxShadow}
+  ${C.TransitionAll}
+`;
+export const PopGrid = styled.div`
+  display: grid;
+  grid-template-columns: 2fr 3fr;
+  gap: 1.5rem;
+
+  @media (max-width: 1200px) {
+    grid-template-columns: 1fr;
+  }
+`;
+export const PopLeftColumn = styled.div`
+  
+`;
+export const PopCard = styled.div`
+  background-color: #FFF;
+  border: 1px solid #E3E6F0;
+  border-radius: 0.35rem;
+  ${C.BoxShadow}
+  overflow: hidden;
+`;
+export const PopCardHeader = styled.header`
+  background-color: #F8F9FC;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #E3E6F0;
+`;
+export const PopCardTitle = styled.h6`
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #4E73DF;
+`;
+export const PopCardBody = styled.div`
+  padding: 1.5rem;
+  color: #858796;
+
+  p {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+  }
+`;
+export const PopFormGroup = styled.div`
+  ${C.FlexColumn}
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+`;
+export const PopLabel = styled.label`
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #5A5C69;
+`;
+export const PopInput = styled.input`
+  width: 100%;
+  padding: 0.66rem 1rem;
+  font-size: 0.9rem;
+  background-color: #FFF;
+  border: 1px solid #D1D3E2;
+  border-radius: 0.35rem;
+  outline: none;
+  ${C.TransitionAll}
+  &:focus { border-color: #4E73DF; }
+`;
+export const PopFileInputWrapper = styled.div`
+  margin-top: 0.5rem;
+  
+  .file-name {
+    font-size: 0.9rem;
+    color: #858796;
+  }
+`;
+export const PopFileInput = styled.input`
+  display: none;
+`;
+export const PopFileLabel = styled.label`
+  background-color: #FFF;
+  border: 1px solid #D1D3E2;
+  padding: 0.5rem 1rem;
+  margin-right: 1rem;
+  border-radius: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #5A5C69;
+  cursor: pointer;
+  &:hover { background-color: #EAECF4; }
+`;
+export const PopPreview = styled.div`
+  margin-top: 1rem;
+  
+  img {
+    width: 200px;
+    max-width: 200px;
+    height: auto;
+    border-radius: 0.5rem;
+    object-fit: cover;
+  }
+`;
+export const PopCheckboxGroup = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+`;
+export const PopCheckboxInput = styled.input`
+  margin-right: 0.5rem;
+  cursor: pointer;
+`;
+export const PopCheckboxLabel = styled.label`
+  font-size: 0.8rem;
+  color: #858796;
+  cursor: pointer;
+`;
+export const PopAddButton = styled.button`
+  ${C.FlexCenter}
+  width: 100%;
+  border: 1px dashed #B7B9CC;
+  color: #5A5C69;
+  padding: 1rem;
+  border-radius: 0.35rem;
+  font-weight: 600;
+  gap: 0.5rem;
+  ${C.TransitionAll}
+  cursor: pointer;
+
+  &:hover {
+    background-color: #EAECF4;
+    border-color: #858796;
+  }
+`;
+export const PopRightColumn = styled.div`
+  
+`;
+export const PopTableWrapper = styled.div`
+  width: 100%;
+`;
+export const PopTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  
+  thead {
+    background-color: #EAECF4;
+    color: #202020;
+  }
+
+  tbody {
+    color: #5A5C69;
+    font-size: 0.9rem;
+  }
+
+  th, td {
+    text-align: center;
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid #D1D3E2;
+  }
+`;
+export const PopBadge = styled.span<{
+  $color: string, $bgColor: string, $hoverColor: string
+}>`
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: ${({$color}) => $color};
+  background-color: ${({$bgColor}) => $bgColor};
+  &:hover { background-color: ${({$hoverColor}) => $hoverColor}; }
+  ${C.TransitionAll}
+`;
+export const PopDeleteButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border: none;
+  color: #E74A3B;
+  cursor: pointer;
+  padding: 0.5rem;
+  ${C.TransitionAll}
+  &:hover { background-color: #FDEAEA; }
+`;
+
+// news
+export const NewsContainer = styled.div`
+  width: 100%;
+`;
+export const NewsHeader = styled.header`
+  ${C.FlexBetween}
+  margin-bottom: 1.5rem;
+`;
+export const NewsTitle = styled.h1`
+  font-size: 1.5rem;
+  color: #5A5C69;
+  font-weight: 700;
+  margin: 0;
+`;
+export const NewsSaveButton = styled.button`
+  ${C.FlexCenter}
+  ${C.BlueButtonTheme}
+  padding: 0.5rem 1.2rem;
+  border-radius: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  ${C.BoxShadow}
+  ${C.TransitionAll}
+`;
+export const NewsGrid = styled.div`
+  display: grid;
+  grid-template-columns: 2fr 3fr;
+  gap: 1.5rem;
+
+  @media (max-width: 1200px) {
+    grid-template-columns: 1fr;
+  }
+`;
+export const NewsLeftColumn = styled.div`
+  
+`;
+export const NewsCard = styled.div`
+  background-color: #FFF;
+  border: 1px solid #E3E6F0;
+  border-radius: 0.35rem;
+  ${C.BoxShadow}
+  overflow: hidden;
+`;
+export const NewsCardHeader = styled.header`
+  background-color: #F8F9FC;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #E3E6F0;
+`;
+export const NewsCardTitle = styled.h6`
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #4E73DF;
+`;
+export const NewsCardBody = styled.div`
+  padding: 1.5rem;
+  color: #858796;
+
+  p {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+  }
+`;
+export const NewsFormGroup = styled.div`
+  ${C.FlexColumn}
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+`;
+export const NewsLabel = styled.label`
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #5A5C69;
+`;
+export const NewsInput = styled.input`
+  width: 100%;
+  padding: 0.66rem 1rem;
+  font-size: 0.9rem;
+  background-color: #FFF;
+  border: 1px solid #D1D3E2;
+  border-radius: 0.35rem;
+  outline: none;
+  ${C.TransitionAll}
+  &:focus { border-color: #4E73DF; }
+`;
+export const NewsFileInputWrapper = styled.div`
+  margin-top: 0.5rem;
+  
+  .file-name {
+    font-size: 0.9rem;
+    color: #858796;
+  }
+`;
+export const NewsFileInput = styled.input`
+  display: none;
+`;
+export const NewsFileLabel = styled.label`
+  background-color: #FFF;
+  border: 1px solid #D1D3E2;
+  padding: 0.5rem 1rem;
+  margin-right: 1rem;
+  border-radius: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #5A5C69;
+  cursor: pointer;
+  &:hover { background-color: #EAECF4; }
+`;
+export const NewsPreviewCircle = styled.div`
+  margin-top: 1rem;
+  
+  img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+`;
+export const NewsAddButton = styled.button`
+  ${C.FlexCenter}
+  width: 100%;
+  border: 1px dashed #B7B9CC;
+  color: #5A5C69;
+  padding: 1rem;
+  border-radius: 0.35rem;
+  font-weight: 600;
+  gap: 0.5rem;
+  ${C.TransitionAll}
+  cursor: pointer;
+
+  &:hover {
+    background-color: #EAECF4;
+    border-color: #858796;
+  }
+`;
+export const NewsRightColumn = styled.div`
+  
+`;
+export const NewsTableWrapper = styled.div`
+  width: 100%;
+`;
+export const NewsTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  
+  thead {
+    background-color: #EAECF4;
+    color: #202020;
+  }
+
+  tbody {
+    color: #5A5C69;
+    font-size: 0.9rem;
+  }
+
+  th, td {
+    text-align: center;
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid #D1D3E2;
+  }
+`;
+export const NewsActionButton = styled.button`
+  ${C.FlexCenter}
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 0.35rem;
+  ${C.TransitionAll}
+  
+  &:not(:disabled) {
+    color: #202020;
+    cursor: pointer;
+  }
+  &:not(:disabled):hover { background-color: #E3E6F0; }
+`;
+export const NewsThumbnail = styled.div`
+  ${C.FlexCenter}
+  
+  img {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+`;
+export const NewsDeleteButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border: none;
+  color: #E74A3B;
+  cursor: pointer;
+  padding: 0.5rem;
+  ${C.TransitionAll}
+  &:hover { background-color: #FDEAEA; }
+`;
+
+// self
+export const SelfContainer = styled.div`
+  width: 100%;
+`;
+export const SelfHeader = styled.header`
+  ${C.FlexBetween}
+  margin-bottom: 1.5rem;
+`;
+export const SelfTitle = styled.h1`
+  font-size: 1.5rem;
+  color: #5A5C69;
+  font-weight: 700;
+  margin: 0;
+`;
+export const SelfSaveButton = styled.button`
+  ${C.FlexCenter}
+  ${C.BlueButtonTheme}
+  padding: 0.5rem 1.2rem;
+  border-radius: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  ${C.BoxShadow}
+  ${C.TransitionAll}
+`;
+export const SelfGrid = styled.div`
+  display: grid;
+  grid-template-columns: 2fr 3fr;
+  gap: 1.5rem;
+
+  @media (max-width: 1200px) {
+    grid-template-columns: 1fr;
+  }
+`;
+export const SelfLeftColumn = styled.div`
+  
+`;
+export const SelfCard = styled.div`
+  background-color: #FFF;
+  border: 1px solid #E3E6F0;
+  border-radius: 0.35rem;
+  ${C.BoxShadow}
+  overflow: hidden;
+`;
+export const SelfCardHeader = styled.header`
+  background-color: #F8F9FC;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #E3E6F0;
+`;
+export const SelfCardTitle = styled.h6`
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #4E73DF;
+`;
+export const SelfCardBody = styled.div`
+  padding: 1.5rem;
+  color: #858796;
+
+  p {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+  }
+`;
+export const SelfFormGroup = styled.div`
+  ${C.FlexColumn}
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+`;
+export const SelfLabel = styled.label`
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #5A5C69;
+`;
+export const SelfFileInputWrapper = styled.div`
+  margin-top: 0.5rem;
+  
+  .file-name {
+    font-size: 0.9rem;
+    color: #858796;
+  }
+`;
+export const SelfFileInput = styled.input`
+  display: none;
+`;
+export const SelfFileLabel = styled.label`
+  background-color: #FFF;
+  border: 1px solid #D1D3E2;
+  padding: 0.5rem 1rem;
+  margin-right: 1rem;
+  border-radius: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #5A5C69;
+  cursor: pointer;
+  &:hover { background-color: #EAECF4; }
+`;
+export const SelfPreviewRect = styled.div`
+  margin-top: 1rem;
+  
+  img {
+    width: 150px;
+    height: 200px;
+    border-radius: 0.5rem;
+    object-fit: cover;
+  }
+`;
+export const SelfInput = styled.input`
+  width: 100%;
+  padding: 0.66rem 1rem;
+  font-size: 0.9rem;
+  background-color: #FFF;
+  border: 1px solid #D1D3E2;
+  border-radius: 0.35rem;
+  outline: none;
+  ${C.TransitionAll}
+  &:focus { border-color: #4E73DF; }
+`;
+export const SelfAddButton = styled.button`
+  ${C.FlexCenter}
+  width: 100%;
+  border: 1px dashed #B7B9CC;
+  color: #5A5C69;
+  padding: 1rem;
+  border-radius: 0.35rem;
+  font-weight: 600;
+  gap: 0.5rem;
+  ${C.TransitionAll}
+  cursor: pointer;
+
+  &:hover {
+    background-color: #EAECF4;
+    border-color: #858796;
+  }
+`;
+export const SelfRightColumn = styled.div`
+  
+`;
+export const SelfTableWrapper = styled.div`
+  width: 100%;
+`;
+export const SelfTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  
+  thead {
+    background-color: #EAECF4;
+    color: #202020;
+  }
+
+  tbody {
+    color: #5A5C69;
+    font-size: 0.9rem;
+  }
+
+  th, td {
+    text-align: center;
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid #D1D3E2;
+  }
+`;
+export const SelfThumbnail = styled.div`
+  ${C.FlexCenter}
+  
+  img {
+    width: 75px;
+    height: 100px;
+    border-radius: 0.5rem;
+    object-fit: cover;
+  }
+`;
+export const SelfStatusBadge = styled.span<{$isActive: boolean}>`
+  width: 100%;
+  padding: 0.4rem 0.7rem;
+  border-radius: 10rem;
+  font-size: 0.8rem;
+  font-weight: bold;
+  cursor: pointer;
+  ${C.TransitionAll}
+  ${({$isActive}) => (!$isActive ? (`
+    color: #B91C1C;
+    background-color: #FEE2E2;
+    &:hover { background-color: #FCA5A5; }
+  `) : (`
+    color: #15803D;
+    background-color: #DCFCE7;
+    &:hover { background-color: #BBF7D0; }
+  `))}
+`;
+export const SelfDeleteButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border: none;
+  color: #E74A3B;
+  cursor: pointer;
+  padding: 0.5rem;
+  ${C.TransitionAll}
+  &:hover { background-color: #FDEAEA; }
 `;

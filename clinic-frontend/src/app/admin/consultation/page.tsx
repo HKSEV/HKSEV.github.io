@@ -61,29 +61,31 @@ export default function Conultation() {
   };
   
   return (
-    <S.ConsultContainer>
-      <S.ConsultHeader>
-          <S.ConsultTitle>상담신청 관리</S.ConsultTitle>
-      </S.ConsultHeader>
+    <S.SetConsultContainer>
+      <S.SetConsultHeader>
+          <S.SetConsultTitle>상담신청 관리</S.SetConsultTitle>
+      </S.SetConsultHeader>
 
       {/* 🎯 검색 및 필터 영역 */}
-      <S.ConsultFilterCard>
-        <S.ConsultInputGroup>
-          <S.ConsultInput type="text" placeholder="이름 또는 연락처 검색" />
-          <S.ConsultSearchButton>
-            <FiSearch size={16}/> 검색
-          </S.ConsultSearchButton>
-        </S.ConsultInputGroup>
-      </S.ConsultFilterCard>
+      <S.SetConsultFilterCard>
+        <S.SetConsultInputGroup>
+          <S.SetConsultInput type="text" placeholder="이름 또는 연락처 검색"/>
+          <S.SetConsultSearchButton>
+            <FiSearch size={16}/>&nbsp;검색
+          </S.SetConsultSearchButton>
+        </S.SetConsultInputGroup>
+      </S.SetConsultFilterCard>
 
       {/* 🎯 상담 내역 데이터 테이블 */}
-      <S.ConsultTableCard>
-        <S.ConsultCardHeader>
-          <S.ConsultCardTitle>빠른 상담신청 접수 내역</S.ConsultCardTitle>
-        </S.ConsultCardHeader>
+      <S.SetConsultTableCard>
+        <S.SetConsultCardHeader>
+          <S.SetConsultCardTitle>
+            빠른 상담신청 접수 내역
+          </S.SetConsultCardTitle>
+        </S.SetConsultCardHeader>
           
-        <S.ConsultTableWrapper>
-          <S.ConsultTable>
+        <S.SetConsultTableWrapper>
+          <S.SetConsultTable>
             <thead>
               <tr>
                 <th>No.</th>
@@ -104,17 +106,18 @@ export default function Conultation() {
                   <td>{item.category}</td>
                   <td>{item.regDate}</td>
                   <td>
-                      <S.ConsultStatusBadge 
+                      <S.SetConsultStatusBadge 
                       $status={item.status} 
                       onClick={() => toggleStatus(item.id)}>
-                        {item.status === "상담완료" && <FiCheck size={12}/>}
+                        {item.status === "상담완료" && <><FiCheck size={12}/>&nbsp;</>}
                         {item.status}
-                      </S.ConsultStatusBadge>
+                      </S.SetConsultStatusBadge>
                   </td>
                   <td>
-                    <S.ConsultDeleteButton onClick={() => handleDelete(item.id)}>
+                    <S.SetConsultDeleteButton
+                    onClick={() => handleDelete(item.id)}>
                       <FiTrash2 size={16}/>
-                    </S.ConsultDeleteButton>
+                    </S.SetConsultDeleteButton>
                   </td>
                 </tr>
               ))}
@@ -128,9 +131,9 @@ export default function Conultation() {
                 </tr>
               )}
             </tbody>
-          </S.ConsultTable>
-        </S.ConsultTableWrapper>
-      </S.ConsultTableCard>
-    </S.ConsultContainer>
+          </S.SetConsultTable>
+        </S.SetConsultTableWrapper>
+      </S.SetConsultTableCard>
+    </S.SetConsultContainer>
   );
 };
