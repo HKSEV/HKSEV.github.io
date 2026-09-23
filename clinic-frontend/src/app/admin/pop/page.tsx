@@ -86,8 +86,8 @@ export default function Pop() {
 
   const handleAddPopup = () => {
     if (!newPopup.title || !newPopup.startDate || !newPopup.endDate) {
-        openPopup("입력 오류", "제목과 시작/종료 일시를 모두 입력해주세요.");
-        return;
+      openPopup("입력 오류", "제목과 시작/종료 일시를 모두 입력해주세요.");
+      return;
     }
     setPopups([...popups, { id: Date.now(), ...newPopup } as PopupData]);
     setNewPopup({

@@ -289,6 +289,7 @@ export const SetConsultStatusBadge = styled.span<{$status: string}>`
   font-size: 0.8rem;
   font-weight: bold;
   cursor: pointer;
+  white-space: nowrap;
   ${C.TransitionAll}
   ${({$status}) => ($status === "대기중" ? (`
     color: #B45309;
@@ -564,9 +565,8 @@ export const SetNavPreview = styled.div`
   margin-top: 1rem;
   
   img {
-    width: 200px;
-    max-width: 200px;
-    height: auto;
+    width: auto;
+    max-height: 300px;
     border-radius: 0.5rem;
     object-fit: cover;
   }
@@ -808,6 +808,7 @@ export const PopBadge = styled.span<{
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
   color: ${({$color}) => $color};
   background-color: ${({$bgColor}) => $bgColor};
   &:hover { background-color: ${({$hoverColor}) => $hoverColor}; }
@@ -1205,6 +1206,7 @@ export const SelfStatusBadge = styled.span<{$isActive: boolean}>`
   font-size: 0.8rem;
   font-weight: bold;
   cursor: pointer;
+  white-space: nowrap;
   ${C.TransitionAll}
   ${({$isActive}) => (!$isActive ? (`
     color: #B91C1C;
