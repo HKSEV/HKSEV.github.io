@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { FiSave, FiTrash2, FiPlus } from "react-icons/fi";
 import usePopup from "@/components/contexts/PopupContext";
 import * as S from "@/assets/css/Style.style";
@@ -51,6 +52,23 @@ export default function FooterSetting() {
     { id: 3, name: "Lifting Center", url: "#" }
   ]);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get("/api/admin/footer");
+        if (response.data.success && response.data.data) {
+          const {companyInfo, schedules, familySites} = response.data.data;
+          setCompanyInfo(companyInfo);
+          setSchedules(schedules);
+          setFamilySites(familySites);
+        };
+      } catch (err) {
+        console.error("푸터 데이터 로드 실패: ", err);
+      };
+    };
+    fetchData();
+  }, []);
+
   // 진료시간 수정 핸들러
   const handleScheduleChange = (
     id: number,
@@ -84,10 +102,17 @@ export default function FooterSetting() {
   };
 
   // 최종 저장 핸들러
-  const handleSave = () => {
-    const payload = [companyInfo, schedules, familySites];
+  const handleSave = async () => {
+    const payload = {companyInfo, schedules, familySites};
     console.log("DB에 저장될 푸터 데이터: ", payload);
-    openPopup("저장 완료", "푸터 설정이 성공적으로 저장되었습니다.");
+    try {
+      const response = await axios.post("/api/admin/footer", payload);
+      if (response.data.success)
+        openPopup("저장 완료", "푸터 설정이 성공적으로 저장되었습니다.");
+    } catch (err) {
+      console.error("푸터 저장 실패: ", err);
+      openPopup("저장 실패", "저장 중 서버 오류가 발생했습니다. 다시 시도해 주세요.");
+    };
   };
 
   return (

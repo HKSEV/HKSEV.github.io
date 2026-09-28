@@ -1,49 +1,118 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import axios from "axios";
 import * as S from "@/assets/css/Style.style";
 
+interface ScheduleData {
+  id: number;
+  department: string;
+  weekday: string;
+  night: string;
+  weekend: string;
+};
+
+interface FamilySiteData {
+  id: number;
+  name: string;
+  url: string;
+};
+
 export default function Footer() {
+  const router = useRouter();
+  const [companyInfo, setCompanyInfo] = useState({
+    name: "",
+    address: "",
+    clinicName: "",
+    phone: "",
+    email: "",
+    locationUrl: ""
+  });
+  const [schedules, setSchedules] = useState<ScheduleData[]>([]);
+  const [familySites, setFamilySites] = useState<FamilySiteData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get("/api/admin/footer");
+        if (response.data.success && response.data.data) {
+          const {companyInfo, schedules, familySites} = response.data.data;
+          setCompanyInfo(companyInfo);
+          setSchedules(schedules);
+          setFamilySites(familySites);
+        };
+      } catch (err) {
+        console.error("푸터 데이터 로드 실패: ", err);
+      } finally {
+        setIsLoading(false);
+      };
+    };
+    fetchData();
+  }, []);
+
+  if (isLoading)
+    return (
+      <S.FooterWrapper>
+        <S.FooterInner>
+          로딩중...
+        </S.FooterInner>
+      </S.FooterWrapper>
+    );
+
   return (
     <S.FooterWrapper>
       <S.FooterInner>
         {/* cs번호 진료시간 오시는길 */}
         <S.FooterTop>
           <S.FooterCs>
-            <S.FooterPhone>02. 932. 2222</S.FooterPhone>
+            <S.FooterPhone>
+              {companyInfo.phone || "02. 000. 0000"}
+            </S.FooterPhone>
             <S.FooterCsTitle>CS CENTER</S.FooterCsTitle>
           </S.FooterCs>
           <S.FooterScheduleWrap>
-            <S.FooterScheduleBlock>
-              <S.FooterScheduleTitle>성형외과</S.FooterScheduleTitle>
-              <S.FooterScheduleText>평일: AM 09:00 - PM 06:00</S.FooterScheduleText>
-              <S.FooterScheduleText>야간:</S.FooterScheduleText>
-              <S.FooterScheduleText>토요일: AM 09:00 - PM 03:00</S.FooterScheduleText>
-            </S.FooterScheduleBlock>
-            <S.FooterScheduleBlock>
-              <S.FooterScheduleTitle>성형외과</S.FooterScheduleTitle>
-              <S.FooterScheduleText>평일: AM 09:00 - PM 06:00</S.FooterScheduleText>
-              <S.FooterScheduleText>야간:</S.FooterScheduleText>
-              <S.FooterScheduleText>토요일: AM 09:00 - PM 03:00</S.FooterScheduleText>
-            </S.FooterScheduleBlock>
+            {schedules.map((sch) => (
+              <S.FooterScheduleBlock key={sch.id}>
+                <S.FooterScheduleTitle>
+                  {sch.department}
+                </S.FooterScheduleTitle>
+                <S.FooterScheduleText>
+                  평일: {sch.weekday}
+                </S.FooterScheduleText>
+                <S.FooterScheduleText>
+                  야간: {sch.night}
+                </S.FooterScheduleText>
+                <S.FooterScheduleText>
+                  토요일: {sch.weekend}
+                </S.FooterScheduleText>
+              </S.FooterScheduleBlock>
+            ))}
           </S.FooterScheduleWrap>
-          <S.FooterLocationBtn>오시는길 바로가기</S.FooterLocationBtn>
+          <S.FooterLocationBtn
+          onClick={() => router.push(companyInfo.locationUrl)}>
+            오시는길 바로가기
+          </S.FooterLocationBtn>
         </S.FooterTop>
 
         <S.FooterBottom>
           <S.FooterCompany>
-            <S.FooterCompanyName>안효범 안스성형외과</S.FooterCompanyName>
+            <S.FooterCompanyName>
+              {companyInfo.name || "안과"}
+            </S.FooterCompanyName>
             <S.FooterInfoText>
-              서울 노원구 노해로 460 (상계동) 2층 201호
+              {companyInfo.address || "201호"}
               <br/>
-              (안호범안스성형외과 건물 주차장 이용)
+              ({companyInfo.clinicName} 건물 주차장 이용)
             </S.FooterInfoText>
             <S.FooterInfoText>
-              의료기관 명칭: 안호범안스성형외과
+              의료기관 명칭: {companyInfo.clinicName}
               <br/>
-              대표번호 02. 932. 2222
+              대표번호: {companyInfo.phone || "02. 000. 0000"}
               <br/>
-              E-mail: tt388wwt@gmail.com
+              E-mail: {companyInfo.email}
             </S.FooterInfoText>
           </S.FooterCompany>
           <S.FooterBottomRight>
@@ -54,9 +123,16 @@ export default function Footer() {
             <div className="">
               <S.FooterFamilyTitle>Family</S.FooterFamilyTitle>
               <S.FooterFamilyLogos>
-                <div className="logo-placeholder">Breast Surgery Center</div>
-                <div className="logo-placeholder">Derm</div>
-                <div className="logo-placeholder">Lifting Center</div>
+                {familySites.map((site) => (
+                  <Link
+                  key={site.id}
+                  href={site.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="logo-placeholder">
+                    {site.name}
+                  </Link>
+                ))}
               </S.FooterFamilyLogos>
             </div>
           </S.FooterBottomRight>

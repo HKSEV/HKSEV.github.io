@@ -6,6 +6,8 @@ const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
 const AppDataSource = require("./db");
 const Member = require("./src/entity/Member");
+const FooterSetting = require("./src/entity/FooterSetting");
+const Consult = require("./src/entity/Consult");
 
 const app = express();
 app.use(cors());
@@ -17,7 +19,7 @@ app.use(express.json());
 //서버시작시 TypeORM DB연결
 AppDataSource.initialize()
 .then(() => {console.log("오라클db가 성공적으로 연결");})
-.catch((error) => console.log("db 연결실패", error));
+.catch((error) => console.log("db 연결실패: ", error));
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "성형외과 백엔드 서버 정상 작동중" });
@@ -250,33 +252,157 @@ app.post("/api/reset-password", async (req, res) => {
 });
 // 고도화: 아이디 확인하고 이메일을 판단해서 보냄
 
+// 퀵상담
+app.post("/api/consult/quick", async (req, res) => {
+  try {
+    console.log(req.body);
+    const {name, phone, department} = req.body;
+    if (!name || !phone || !department)
+      return res.status(400).json({
+        success: false,
+        message: "이름, 연락처, 상담 분야를 모두 입력해주세요."
+      });
+
+    const consultRepository = AppDataSource.getRepository(Consult);
+    const newConsult = consultRepository.create({
+      NAME: name,
+      PHONE: phone,
+      DEPARTMENT: department,
+      PASSWORD: "0000",
+      USER_ID: "비회원",
+      TITLE: `[빠른상담] ${department} 문의입니다.`,
+      CONTENT: `${name}님의 빠른 상담 신청입니다. 빠른 시일 내에 연락바랍니다.`,
+      STATUS: "대기중"
+    });
+    await consultRepository.save(newConsult);
+    res.status(200).json({
+      success: true,
+      message: "빠른 상담 신청이 완료되었습니다."
+    });
+  } catch (err) {
+    console.error("빠른 상담 신청 에러: ", err);
+    res.status(500).json({
+      success: false,
+      message: "상담 신청 중 오류가 발생했습니다."
+    });
+  };
+});
+
 // admin 시작
+// 상담내역 전체 조회
+app.get("/api/admin/consult", async (req, res) => {
+  try {
+    const consultRepository = AppDataSource.getRepository(Consult);
+    const list = await consultRepository.find({order:{CREATED_AT:"DESC"}});
+    res.status(200).json({
+      success: true,
+      data: list
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false
+    });
+  };
+});
+// 상담 상태 토글
+app.put("/api/admin/consult/:id/status", async (req, res) => {
+  try {
+    const consultRepository = AppDataSource.getRepository(Consult);
+    const consult = await consultRepository.findOne({
+      where: {ID: req.params.id}
+    });
+    if (!consult)
+      return res.status(404).json({
+        success: false,
+        message: "데이터가 없습니다."
+      });
+
+    consult.STATUS = consult.STATUS === "대기중" ? "상담완료" : "대기중";
+    await consultRepository.save(consult);
+    res.status(200).json({success: true});
+  } catch (err) {
+    res.status(500).json({success: false});
+  };
+});
+// 상담 내역 삭제
+app.delete("/api/admin/consult/:id", async (req, res) => {
+  try {
+    const consultRepository = AppDataSource.getRepository(Consult);
+    await consultRepository.delete(req.params.id);
+    res.status(200).json({success: true})
+  } catch (err) {
+    res.status(500).json({success: false});
+  };
+});
+// footer세팅 관리자
+app.get("/api/admin/footer", async (req, res) => {
+  try {
+    // 테이블 데이터를 다룰 수 있는 권한(저장소)를 가져옴
+    const footerRepository = AppDataSource.getRepository(FooterSetting);
+    const footer = await footerRepository.findOne({where: {ID: 1}});
+    if (!footer)
+      return res.status(200).json({
+        success: true,
+        data: null
+      });
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        companyInfo: {
+          name: footer.NAME || "",
+          address: footer.ADDRESS || "",
+          clinicName: footer.CLINIC_NAME || "",
+          phone: footer.PHONE || "",
+          email: footer.EMAIL || "",
+          locationUrl: footer.LOCATION_URL || ""
+        },
+        schedules: footer.SCHEDULES || [],
+        familySites: footer.FAMILY_SITES || []
+      }
+    });
+  } catch (err) {
+    console.error("푸터 조회 에러: ", err);
+    res.status(500).json({
+      success: false,
+      message: "푸터 데이터를 불러오지 못했습니다."
+    });
+  };
+});
+// footer 포스트
+app.post("/api/admin/footer", async (req, res) => {
+  try {
+    // 프론트에서 post로 보낸 데이터 분해
+    const {companyInfo, schedules, familySites} = req.body;
+    console.log("데이터: ", schedules);
+    const footerRepository = AppDataSource.getRepository(FooterSetting);
+    let footer = await footerRepository.findOne({where: {ID: 1}});
+    if (!footer) // 최초저장
+      footer = await footerRepository.create({ID: 1});
+
+    footer.NAME = companyInfo.name;
+    footer.ADDRESS = companyInfo.address;
+    footer.CLINIC_NAME = companyInfo.clinicName;
+    footer.PHONE = companyInfo.phone;
+    footer.EMAIL = companyInfo.email;
+    footer.LOCATION_URL = companyInfo.locationUrl;
+    footer.SCHEDULES = schedules;
+    footer.FAMILY_SITES = familySites;
+    await footerRepository.save(footer);
+
+    res.status(200).json({
+      success: true,
+      message: "푸터 설정이 성공적으로 저장되었습니다."
+    });
+  } catch (err) {
+    console.error("푸터 저장 에러: ", err);
+    res.status(500).json({
+      success: false,
+      message: "푸터 저장 중 서버 오류가 발생했습니다."
+    });
+  };
+});
 // admin 종료
-
-// // 서버 시작 과정을 순서대로 처리하기 위한 비동기 함수
-// async function startup() {
-//   console.log("서버 시작 중.....");
-//   try {
-//     // DB 연결 초기화
-//     await AppDataSource.initialize();
-//     console.log("TypeORM 오라클 DB연결 완료...");
-
-//     // 지정한 포트에서 클라이언트의 요청을 기다리기 시작
-//     app.listen(port, () => {
-//       console.log(`서버가 http://localhost:${port} 에서 실행 중입니다.`);
-//     });
-//   } catch (err) {
-//     console.error("DB 연결 실패: ", err);
-//   };
-// };
-// startup();
-
-// process.on("SIGINT", async () => {
-//   console.log("서버를 종료합니다...");
-//   await AppDataSource.close();
-
-//   process.exit(0);
-// });
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
