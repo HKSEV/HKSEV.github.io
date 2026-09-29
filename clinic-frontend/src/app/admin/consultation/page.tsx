@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FiTrash2, FiSearch, FiCheck } from "react-icons/fi";
+import { Temporal } from "@js-temporal/polyfill";
 import usePopup from "@/components/contexts/PopupContext";
 import * as S from "@/assets/css/Style.style";
 
@@ -19,34 +20,50 @@ interface ConsultData {
 export default function Conultation() {
   const {openPopup, closePopup} = usePopup();
   const [consultList, setConsultList] = useState<ConsultData[]>([]);
+  // 페이징
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10; // 1페이지당 개수
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get("/api/admin/consult");
+      if (response.data.success && response.data.data) {
+        const list = response.data.data;
+        setConsultList(list);
+      };
+    } catch (err) {
+      console.error("상담 내역 로드 실패: ", err);
+    };
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get("/api/admin/consult");
-        if (response.data.success && response.data.data) {
-          const list = response.data.data;
-          setConsultList(list);
-        };
-      } catch (err) {
-        console.error("상담 내역 로드 실패: ", err);
-      };
-    };
     fetchData();
   }, []);
+
+  // 필터
+  const filteredList = consultList.filter((item) => {
+    if (!searchTerm)
+      return true;
+    return item.NAME.includes(searchTerm) || item.PHONE.includes(searchTerm);
+  });
+  const totalPages = Math.ceil(filteredList.length / ITEMS_PER_PAGE);
+  const paginatedList = filteredList.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE
+  );
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
 
   // 변경
   const toggleStatus = async (id: number) => {
     try {
       await axios.put(`/api/admin/consult/${id}/status`);
+      fetchData();
     } catch (err) {
-
+      openPopup("오류", "상태 변경에 실패 했습니다.");
     };
-    setConsultList(consultList.map(item => 
-      item.ID === id
-      ? {...item, STATUS: item.STATUS === "대기중" ? "상담완료" : "대기중"}
-      : item
-    ));
   };
 
   // 삭제
@@ -57,9 +74,10 @@ export default function Conultation() {
     try {
       openPopup("확인", "정말 이 상담 내역을 삭제하시겠습니까?", async () => {
         await axios.delete(`/api/admin/consult/${id}`);
+        fetchData();
       });
     } catch (err) {
-
+      openPopup("오류", "삭제에 실패");
     };
   };
 
@@ -95,7 +113,11 @@ export default function Conultation() {
       {/* 🎯 검색 및 필터 영역 */}
       <S.SetConsultFilterCard>
         <S.SetConsultInputGroup>
-          <S.SetConsultInput type="text" placeholder="이름 또는 연락처 검색"/>
+          <S.SetConsultInput
+          type="text"
+          placeholder="이름 또는 연락처 검색"
+          value={searchTerm}
+          onChange={handleSearchChange}/>
           <S.SetConsultSearchButton>
             <FiSearch size={16}/>&nbsp;검색
           </S.SetConsultSearchButton>
@@ -124,41 +146,57 @@ export default function Conultation() {
               </tr>
             </thead>
             <tbody>
-              {consultList.map((item, idx) => (
-                <tr key={item.ID}>
-                  <td>{consultList.length - idx}</td>
-                  <td><strong>{item.NAME}</strong></td>
-                  <td>{item.PHONE}</td>
-                  <td>{item.DEPARTMENT}</td>
-                  <td>{formatDate(item.CREATED_AT)}</td>
-                  <td>
-                      <S.SetConsultStatusBadge 
-                      $status={item.STATUS} 
-                      onClick={() => toggleStatus(item.ID)}>
-                        {item.STATUS === "상담완료" && <><FiCheck size={12}/>&nbsp;</>}
-                        {item.STATUS}
-                      </S.SetConsultStatusBadge>
-                  </td>
-                  <td>
-                    <S.SetConsultDeleteButton
-                    onClick={() => handleDeleteClick(item.ID)}>
-                      <FiTrash2 size={16}/>
-                    </S.SetConsultDeleteButton>
-                  </td>
-                </tr>
-              ))}
-              {consultList.length === 0 && (
+              {paginatedList.map((item, idx) => {
+                const displayIdx = filteredList.length - ((currentPage - 1) * ITEMS_PER_PAGE + idx);
+                return (
+                  <tr key={item.ID}>
+                    <td>{displayIdx}</td>
+                    <td><strong>{item.NAME}</strong></td>
+                    <td>{item.PHONE}</td>
+                    <td>{item.DEPARTMENT}</td>
+                    <td>{formatDate(item.CREATED_AT)}</td>
+                    <td>
+                        <S.SetConsultStatusBadge 
+                        $status={item.STATUS} 
+                        onClick={() => toggleStatus(item.ID)}>
+                          {item.STATUS === "상담완료" &&
+                          <><FiCheck size={12}/>&nbsp;</>}
+                          {item.STATUS}
+                        </S.SetConsultStatusBadge>
+                    </td>
+                    <td>
+                      <S.SetConsultDeleteButton
+                      onClick={() => handleDeleteClick(item.ID)}>
+                        <FiTrash2 size={16}/>
+                      </S.SetConsultDeleteButton>
+                    </td>
+                  </tr>
+                );
+              })}
+              {paginatedList.length === 0 && (
                 <tr>
                   <td
                   colSpan={7}
                   style={{ textAlign: "center", padding: "3rem" }}>
-                    접수된 상담 내역이 없습니다.
+                    {searchTerm ? "검색 결과가 없습니다." : "접수된 상담 내역이 없습니다."}
                   </td>
                 </tr>
               )}
             </tbody>
           </S.SetConsultTable>
         </S.SetConsultTableWrapper>
+        {totalPages > 1 && (
+          <S.SetConsultPagination>
+            {Array.from({length: totalPages}, (_, i) => i + 1).map((p) => (
+              <S.SetConsultPaginationButton
+              key={p}
+              onClick={() => setCurrentPage(p)}
+              $active={p === currentPage}>
+                {p}
+              </S.SetConsultPaginationButton>
+            ))}
+          </S.SetConsultPagination>
+        )}
       </S.SetConsultTableCard>
     </S.SetConsultContainer>
   );

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { FiSave, FiPlus, FiTrash2, FiImage, FiType } from "react-icons/fi";
 import usePopup from "@/components/contexts/PopupContext";
 import * as S from "@/assets/css/Style.style";
@@ -14,23 +15,49 @@ interface MenuItem {
 export default function Nav() {
   const {openPopup, closePopup} = usePopup();
   const [logoType, setLogoType] = useState<"TEXT"|"IMAGE">("TEXT");
-  const [logoText, setLogoText] = useState<string>("성형외과 로고");
+  const [logoText, setLogoText] = useState<string>("");
   const [logoFileName, setLogoFileName] = useState<string>("");
-  const [menus, setMenus] = useState<MenuItem[]>([
-    {id: 1, name: "병원소개", url: "/"},
-    {id: 2, name: "눈 성형", url: "/"},
-    {id: 3, name: "코 성형", url: "/"},
-    {id: 4, name: "동안 성형", url: "/"},
-    {id: 5, name: "쁘띠 시술", url: "/"},
-    {id: 6, name: "커뮤니티", url: "/"},
-  ]); // 시안과 동일하게 설정
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [menus, setMenus] = useState<MenuItem[]>([]);
   const [previewUrl, setPreviewUrl] = useState<string>("");
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get("/api/admin/nav");
+        if (response.data.success) {
+          const dbData = response.data.data;
+          setLogoType(dbData.LOGO_TYPE);
+          setLogoText(dbData.LOGO_TEXT);
+          if (dbData.LOGO_FILE) {
+            setLogoFileName(dbData.LOGO_FILE);
+            setPreviewUrl(`/images/${dbData.LOGO_FILE}`);
+          };
+          if (dbData.MENUS && dbData.MENUS !== "[]")
+            setMenus(JSON.parse(dbData.MENUS));
+          else
+            setMenus([
+              {id: 1, name: "병원소개", url: "/"},
+              {id: 2, name: "눈 성형", url: "/"},
+              {id: 3, name: "코 성형", url: "/"},
+              {id: 4, name: "동안 성형", url: "/"},
+              {id: 5, name: "쁘띠 시술", url: "/"},
+              {id: 6, name: "커뮤니티", url: "/"},
+            ]);
+        };
+      } catch (err) {
+        console.error("설정 로드 실패: ", err);
+      };
+    };
+    fetchData();
+  }, []);
 
   // 로고 이미지 파일 선택 핸들러
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setLogoFileName(file.name);
+      setLogoFile(file);
       setPreviewUrl(URL.createObjectURL(file)); 
     };
   };
@@ -49,17 +76,34 @@ export default function Nav() {
       {...menu, [field]: value}
     ) : menu));
   };
-  const handleSave = () => {
-    const payload = {
-      logo: {
-        type: logoType,
-        text: logoType === "TEXT" ? logoText : null,
-        fileName: logoType === "IMAGE" ? logoFileName : null,
-      },
-      menus: menus
-    };
+  const handleSave = async () => {
+    let finalFileName = logoFileName;
+
+    try {
+      if (logoType === "IMAGE" && logoFile) {
+        const formData = new FormData();
+        formData.append("logoImage", logoFile);
+        const uploadRes = await axios.post("/api/admin/nav", formData, {
+          headers: {"Content-Type":"multipart/form-data"}
+        });
+        if (uploadRes.data.success) {
+          finalFileName = uploadRes.data.fileName;
+          setLogoFileName(finalFileName);
+        };
+      };
+
+      const payload = {
+        logoType: logoType,
+        logoText: logoType === "TEXT" ? logoText : "",
+        logoFileName: logoType === "IMAGE" ? finalFileName : null,
+        menus: menus
+      };
     console.log("DB에 저장될 데이터: ", payload);
-    openPopup("저장완료", "내비게이션 설정이 성공적으로 저장되었습니다.");
+      await axios.put("/api/admin/nav", payload);
+      openPopup("저장완료", "내비게이션 설정이 성공적으로 저장되었습니다.");
+    } catch (err) {
+      openPopup("오류", "설정 저장에 실패했습니다.");
+    };
   };
 
   return (
@@ -95,11 +139,11 @@ export default function Nav() {
                 <S.SetNavLabel>텍스트 입력</S.SetNavLabel>
                 <S.SetNavInput
                 type="text"
-                value={logoText}
+                value={logoText ?? ""}
                 onChange={(e) => setLogoText(e.target.value)}
-                placeholder="예:안효범성형외과"/>
+                placeholder="예:안호범성형외과"/>
               </S.SetNavInputWrapper>
-            ) : (
+            ) : logoType === "IMAGE" ? (
               <S.SetNavFileGroup>
                 <S.SetNavLabel>이미지 파일 등록</S.SetNavLabel>
                 <S.SetNavFileInputWrapper>
@@ -121,7 +165,7 @@ export default function Nav() {
                   </S.SetNavPreview>
                 )}
               </S.SetNavFileGroup>
-            )}
+            ) : (<></>)}
           </S.SetNavCardBody>
         </S.SetNavCard>
 

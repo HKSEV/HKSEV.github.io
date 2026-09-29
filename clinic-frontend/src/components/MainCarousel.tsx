@@ -1,18 +1,47 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import axios from "axios";
+import Link from "next/link";
 import useEmblaCarousel from "embla-carousel-react";
 import * as S from "@/assets/css/Style.style";
 
-const MAIN_SLIDES = [
-  {id: 1, imageUrl: "/images/main-banner1.jpg", title: "예쁘면 다야!"},
-  {id: 2, imageUrl: "/images/main-banner2.jpg", title: "레이어핏 울쎄라"},
-  {id: 3, imageUrl: "/images/main-banner3.jpg", title: "여름시즌 한정이벤트"}
-];
+interface SlideItem {
+  id: number;
+  fileName: string;
+  title: string;
+  link: string;
+};
 
 export default function MainCarousel() {
   // loop: 무한반복
   const [emblaRef, emblaApi] = useEmblaCarousel({loop: true});
+  const [slides, setSlides] = useState<SlideItem[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get("/api/admin/visual");
+        if (response.data.success) {
+          const dbData = response.data.data;
+          if (dbData.SLIDES && dbData.SLIDES !== "[]")
+            setSlides(JSON.parse(dbData.SLIDES));
+          else
+            setSlides([
+              {
+                id: 1,
+                fileName: "default-banner.jpg",
+                title: "기본 배너",
+                link: "/"
+              }
+            ]);
+        };
+      } catch (err) {
+        console.error("캐러셀 데이터 로드 실패: ", err);
+      };
+    };
+    fetchData();
+  }, []);
   
   // 좌우 화살표 핸들러
   const scrollPrev = useCallback(() => {
@@ -38,18 +67,25 @@ export default function MainCarousel() {
     <S.CarouselSection>
       <S.EmblaViewport ref={emblaRef}>
         <S.EmblaContainer>
-          {MAIN_SLIDES.map((slide) => (
+          {slides.map((slide) => (
             <S.EmblaSlide key={slide.id}>
-              <S.SlideImage src={slide.imageUrl} alt={slide.title}/>
+              <S.SlideImage
+              src={`/images/${slide.fileName}`}
+              alt={slide.title}/>
+              {slide.title && (
+                <S.SlideCopy>
+                  {slide.title}
+                </S.SlideCopy>
+              )}
             </S.EmblaSlide>
           ))}
         </S.EmblaContainer>
       </S.EmblaViewport>
       <S.NavButton $direction="left" onClick={scrollPrev}>
-          &lt;
+        &lt;
       </S.NavButton>
       <S.NavButton $direction="right" onClick={scrollNext}>
-          &gt;
+        &gt;
       </S.NavButton>
     </S.CarouselSection>
   );

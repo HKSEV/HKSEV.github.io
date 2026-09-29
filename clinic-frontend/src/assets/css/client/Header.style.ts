@@ -25,20 +25,24 @@ export const HeaderInner = styled.div`
   }
 `;
 // 로고 그룹
-export const LogoGroup = styled.div`
+export const HeaderLogoGroup = styled.div`
   display: flex;
   align-items: center;
   flex: 1;
 `;
-export const Logo = styled.h1`
+export const HeaderLogo = styled.h1`
   font-family: "Times New Roman", serif;
   font-size: 34px;
   color: #3E2723;
   margin: 0;
   cursor: pointer;
 `;
+export const HeaderLogoImg = styled.img`
+  max-height: 40px;
+  cursor: pointer;
+`;
 // 중앙 내비게이션 그룹
-export const NavGroup = styled.nav`
+export const HeaderNavGroup = styled.nav`
   display: flex;
   align-items: center;
   justify-content: center;
@@ -49,7 +53,7 @@ export const NavGroup = styled.nav`
     display: none;
   }
 `;
-export const NavItem = styled.span<{$active?: boolean}>`
+export const HeaderNavItem = styled.span<{$active?: boolean}>`
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
@@ -61,7 +65,7 @@ export const NavItem = styled.span<{$active?: boolean}>`
   transition: all 0.2s ease-in-out;
   &:hover { color: #0056B3; }
 `;
-export const UtilGroup = styled.div`
+export const HeaderUtilGroup = styled.div`
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -72,7 +76,7 @@ export const UtilGroup = styled.div`
     gap: 8px;
   }
 `;
-export const PhoneButton = styled(Link)`
+export const HeaderPhoneButton = styled(Link)`
   display: flex;
   align-items: center;
   height: 40px;
@@ -90,7 +94,7 @@ export const PhoneButton = styled(Link)`
     margin-left: 6px;
   }
 `;
-export const CtaButton = styled.button`
+export const HeaderCtaButton = styled.button`
   height: 40px;
   background-color: #111;
   color: #FFF;
@@ -101,7 +105,7 @@ export const CtaButton = styled.button`
   font-weight: bold;
   cursor: pointer;
 `;
-export const IconButton = styled.button`
+export const HeaderIconButton = styled.button`
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -121,7 +125,7 @@ export const IconButton = styled.button`
   }
 `;
 // add
-export const DesktopOnly = styled.div`
+export const HeaderDesktopOnly = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
@@ -131,7 +135,7 @@ export const DesktopOnly = styled.div`
   }
 `;
 // 모바일 전용 둥근 라인버튼
-export const MobilePillButton = styled.button`
+export const HeaderMobilePillButton = styled.button`
   display: none;
 
   @media (max-width: 1024px) {
@@ -148,7 +152,7 @@ export const MobilePillButton = styled.button`
   }
 `;
 // 아디다스 버튼
-export const HamburgerButton = styled.button`
+export const HeaderHamburgerButton = styled.button`
   display: none;
 
   @media (max-width: 1024px) {

@@ -1,20 +1,42 @@
+// 환경변수(DB 비밀번호, 포트 번호 등)를 읽어서 프로그램에 적용
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-// 환경변수(DB 비밀번호, 포트 번호 등)를 읽어서 프로그램에 적용
+const multer = require("multer");
+const fs = require("fs");
+const path = require("path");
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
+
 const AppDataSource = require("./db");
 const Member = require("./src/entity/Member");
-const FooterSetting = require("./src/entity/FooterSetting");
 const Consult = require("./src/entity/Consult");
+const NavSetting = require("./src/entity/NavSetting");
+const MainVisual = require("./src/entity/MainVisual");
+const FooterSetting = require("./src/entity/FooterSetting");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-// HTML 폼 태그를 통해 전송된 데이터를 서버가 이해할 수 있도록 변환
-// extended: true는 복잡한 객체 형태의 데이터도 해석
-// app.use(express.urlencoded({ extended: true }));
+app.use("/images", express.static(path.join(__dirname, "public/images")));
+
+const uploadDir = path.join(__dirname, "public/images");
+if (!fs.existsSync(uploadDir))
+  fs.mkdirSync(uploadDir, {recursive: true});
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    if (!req.fileIndex)
+      req.fileIndex = 1;
+
+    const ext = path.extname(file.originalname);
+    cb(null, `${file.fieldname}_${req.fileIndex}${ext}`);
+    req.fileIndex++;
+  }
+});
+const upload = multer({storage: storage});
 
 //서버시작시 TypeORM DB연결
 AppDataSource.initialize()
@@ -299,9 +321,8 @@ app.get("/api/admin/consult", async (req, res) => {
       data: list
     });
   } catch (err) {
-    res.status(500).json({
-      success: false
-    });
+    console.error("상담 내역 조회 에러: ", err);
+    res.status(500).json({success: false});
   };
 });
 // 상담 상태 토글
@@ -319,9 +340,16 @@ app.put("/api/admin/consult/:id/status", async (req, res) => {
 
     consult.STATUS = consult.STATUS === "대기중" ? "상담완료" : "대기중";
     await consultRepository.save(consult);
-    res.status(200).json({success: true});
+    res.status(200).json({
+      success: true,
+      message: "상태가 변경되었습니다."
+    });
   } catch (err) {
-    res.status(500).json({success: false});
+    console.error("상태 변경 에러: ", err);
+    res.status(500).json({
+      success: false,
+      message: "상태 변경 실패"
+    });
   };
 });
 // 상담 내역 삭제
@@ -331,9 +359,116 @@ app.delete("/api/admin/consult/:id", async (req, res) => {
     await consultRepository.delete(req.params.id);
     res.status(200).json({success: true})
   } catch (err) {
+    console.error("상담 삭제 에러: ", err);
     res.status(500).json({success: false});
   };
 });
+
+// nav세팅
+app.get("/api/admin/nav", async (req, res) => {
+  try {
+    const navRepository = AppDataSource.getRepository(NavSetting);
+    let setting = await navRepository.findOne({where: {ID: 1}});
+    if (!setting)
+      return res.status(200).json({
+        success: true,
+        data: {
+          LOGO_TYPE: "",
+          LOGO_TEXT: "",
+          LOGO_FILE: "",
+          MENUS: "[]"
+        }
+      });
+
+    res.status(200).json({success: true, data: setting});
+  } catch (err) {
+    console.error("내비게이션 조회 에러: ", err);
+    res.status(500).json({success: false});
+  };
+});
+app.post("/api/admin/nav", upload.single("logoImage"), async (req, res) => {
+  if (!req.file)
+    return res.status(400).json({
+      success: false,
+      message: "파일이 없습니다."
+    });
+
+  res.status(200).json({
+    success: true,
+    fileName: req.file.filename
+  });
+});
+// 최초
+app.put("/api/admin/nav", async (req, res) => {
+  try {
+    const {logoType, logoText, logoFileName, menus} = req.body;
+    const navRepository = AppDataSource.getRepository(NavSetting);
+    let setting = await navRepository.findOne({where: {ID: 1}});
+    if (!setting)
+      setting = await navRepository.create({ID: 1});
+
+    setting.LOGO_TYPE = logoType;
+    setting.LOGO_TEXT = logoText || "";
+    setting.LOGO_FILE = logoFileName || "";
+    setting.MENUS = JSON.stringify(menus);
+    await navRepository.save(setting);
+    res.status(200).json({success: true});
+  } catch (err) {
+    console.error("내비게이션 저장 에러: ", err);
+    res.status(500).json({success: false});
+  };
+});
+
+// 메인 비주얼 캐러셀 세팅
+app.get("/api/admin/visual", async (req, res) => {
+  try {
+    const visualRepository = AppDataSource.getRepository(MainVisual);
+    let setting = await visualRepository.findOne({where: {ID: 1}});
+    if (!setting)
+      return res.status(200).json({
+        success: true,
+        data: {SLIDES: "[]"}
+      });
+
+    res.status(200).json({
+      success: true,
+      data: setting
+    });
+  } catch (err) {
+    console.error("메인 비주얼 조회 에러: ", err);
+    res.status(500).json({success: false});
+  };
+});
+app.post("/api/admin/visual", upload.array("mainImage"), async (req, res) => {
+  if (req.files.length === 0)
+    return res.status(400).json({
+      success: false,
+      message: "파일이 없습니다."
+    });
+
+  const fileNames = req.files.map(f => f.filename);
+  res.status(200).json({
+    success: true,
+    fileNames: fileNames
+  });
+});
+app.put("/api/admin/visual", async (req, res) => {
+  try {
+    const {slides} = req.body;
+    const visualRepository = AppDataSource.getRepository(MainVisual);
+    let setting = await visualRepository.findOne({where: {ID: 1}});
+    if (!setting)
+      setting = await visualRepository.create({ID: 1});
+
+    setting.SLIDES = JSON.stringify(slides);
+    await visualRepository.save(setting);
+    res.status(200).json({success: true});
+  } catch (err) {
+    console.error("메인 비주얼 저장 에러: ", err);
+    res.status(500).json({success: false});
+  };
+});
+
 // footer세팅 관리자
 app.get("/api/admin/footer", async (req, res) => {
   try {

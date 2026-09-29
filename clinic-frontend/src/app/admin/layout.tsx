@@ -42,11 +42,11 @@ export default function AdminLayout({children}:{children: React.ReactNode}) {
         $isCollapsed={isCollapsed}>
           {isCollapsed ? "ADMIN" : "ADMIN PANNEL"}
         </S.AdminSideBarBrand>
-        <S.AdminNavItem
+        {/* <S.AdminNavItem
         onClick={() => router.push("/admin/dashboard")}
         $isCollapsed={isCollapsed}>
           <span></span>{!isCollapsed && <span>대시보드</span>}
-        </S.AdminNavItem>
+        </S.AdminNavItem> */}
         <S.AdminNavItem
         onClick={() => router.push("/admin/consultation")}
         $isCollapsed={isCollapsed}>
@@ -64,6 +64,12 @@ export default function AdminLayout({children}:{children: React.ReactNode}) {
         $isCollapsed={isCollapsed}>
           <FiCompass size={20}/>
           {!isCollapsed && <span>내비게이션관리</span>}
+        </S.AdminNavItem>
+        <S.AdminNavItem
+        onClick={() => router.push("/admin/carousel")}
+        $isCollapsed={isCollapsed}>
+          <FiCompass size={20}/>
+          {!isCollapsed && <span>캐러셀슬라이드관리</span>}
         </S.AdminNavItem>
         <S.AdminNavItem
         onClick={() => router.push("/admin/pop")}

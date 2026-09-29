@@ -60,6 +60,9 @@ export const LinearGradient = css`
 export const BoxShadow = css`
   box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
 `;
+export const TextShadow = css`
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+`;
 export const TransitionAll = css`
   transition: all 0.15s ease-in-out;
 `;
@@ -275,4 +278,21 @@ export const RankBadge = css`
   ${InlineFlexCenter}
   font-size: 0.9rem;
   ${BoxShadow}
+`;
+export const Pagination = css`
+  ${FlexCenter}
+  margin-top: 20px;
+  gap: 6px;
+  padding-bottom: 20px;
+`;
+export const PaginationButton = css`
+  ${FlexCenter}
+  width: 32px;
+  height: 32px;
+  border: 1px solid #DDD;
+  background-color: ${({$active}: any) => ($active ? "#333" : "#FFF")};
+  color: ${({$active}: any) => ($active ? "#FFF" : "#333")};
+  cursor: pointer;
+  border-radius: 4px;
+  font-weight: ${({$active}: any) => ($active ? "bold" : "normal")};
 `;

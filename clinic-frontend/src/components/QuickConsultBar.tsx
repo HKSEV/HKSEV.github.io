@@ -17,6 +17,10 @@ export default function QuickConsultBar() {
       openPopup("오류", "이름, 연락처, 상담 분야를 모두 입력해주세요.");
       return;
     };
+    if (phone.length < 9 || /(\d)\1{6}/.test(phone)) {
+      openPopup("오류", "연락처를 올바르게 입력해주세요.");
+      return;
+    };
     if (!isAgreed) {
       openPopup("오류", "개인정보처리방침에 동의해 주세요.");
       return;
@@ -52,7 +56,11 @@ export default function QuickConsultBar() {
         type="tel"
         placeholder="연락처를 작성해주세요"
         value={phone}
-        onChange={(e) => setPhone(e.target.value)}/>
+        onChange={(e) => {
+          const onlyNumbers = e.target.value.replace(/[^0-9]/g, "");
+          setPhone(onlyNumbers);
+        }}
+        maxLength={11}/>
         <S.ConsultSelect
         value={department}
         onChange={(e) => setDepartment(e.target.value)}>

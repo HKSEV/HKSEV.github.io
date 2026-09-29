@@ -119,7 +119,7 @@ export const DashTitle = styled.h1`
   ${C.Title}
   margin-bottom: 1.5rem;
 `;
-export const DashCardGrid = styled.div`
+export const DashSummaryGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 1.5rem;
@@ -134,62 +134,43 @@ export const DashCardGrid = styled.div`
   }
 `;
 export const DashSummaryCard = styled.div<{$borderColor: string}>`
-  ${C.FlexTopBetween}
   background-color: #FFF;
   border-radius: 0.35rem;
   border-left: 0.25rem solid ${({$borderColor}) => $borderColor};
   ${C.BoxShadow}
-  padding: 1.25rem;
+  padding: 1.5rem;
 `;
-export const DashCardInfo = styled.div`
-  ${C.FlexColumn}
-  gap: 0.2rem;
-  flex: 1;
+export const DashSummaryBody = styled.div`
+  ${C.FlexBetween}
 `;
-export const DashCardLabel = styled.span<{$textColor: string}>`
+export const DashSummaryTitle = styled.div<{$textColor: string}>`
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: bold;
   color: ${({$textColor}) => $textColor};
   text-transform: uppercase;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.25rem;
 `;
-export const DashCardMainValue = styled.span`
-  font-size: 1.5rem;
+export const DashSummaryValue = styled.div`
+  font-size: 1.2rem;
   font-weight: bold;
   color: #5A5C69;
-  margin-bottom: 0.8rem;
 `;
-export const DashCardSubGrid = styled.div`
-  ${C.FlexWrap}
-  gap: 0.8rem;
-  font-size: 0.8rem;
-  color: #858796;
-  border-top: 1px solid #EAECF4;
-  padding-top: 0.8rem;
-  width: 100%;
-`;
-export const DashCardSubItem = styled.div`
-  display: flex;
-  gap: 0.3rem;
-  strong { color: #5A5C69; }
-`;
-export const DashCardIconWrapper = styled.div`
-  opacity: 0.6;
-  margin-top: 0.5rem;
-  margin-left: 1rem;
-`;
-export const DashBottomSection = styled.section`
-  background-color: #FFF;
-  border-radius: 0.35rem;
-  ${C.BoxShadow}
-  border: 1px solid #E3E6F0;
-  min-height: 300px;
-  ${C.FlexCenter}
-
-  div {
-    padding: 2rem;
-    color: #858796;
-  }
+// export const DashCardSubGrid = styled.div`
+//   ${C.FlexWrap}
+//   gap: 0.8rem;
+//   font-size: 0.8rem;
+//   color: #858796;
+//   border-top: 1px solid #EAECF4;
+//   padding-top: 0.8rem;
+//   width: 100%;
+// `;
+// export const DashCardSubItem = styled.div`
+//   display: flex;
+//   gap: 0.3rem;
+//   strong { color: #5A5C69; }
+// `;
+export const DashSummaryIcon = styled.div`
+  color: #DDDFEB;
 `;
 export const DashChartGrid = styled.div`
   display: grid;
@@ -227,8 +208,8 @@ export const DashBarChartContainer = styled.div`
   justify-content: space-around;
   height: 250px;
   padding-top: 1rem;
-  border-bottom: 1px solid #eaecf4;
-  border-left: 1px solid #eaecf4;
+  border-bottom: 1px solid #EAECF4;
+  border-left: 1px solid #EAECF4;
 `;
 export const DashBarWrapper = styled.div`
   display: flex;
@@ -251,7 +232,7 @@ export const DashBar = styled.div<{ $height: string }>`
   transition: height 0.5s ease;
 
   &:hover {
-    background-color: #2e59d9;
+    background-color: #2E59D9;
   }
 `;
 export const DashBarLabel = styled.div`
@@ -265,9 +246,9 @@ export const DashDonutChart = styled.div`
   height: 150px;
   border-radius: 50%;
   background: conic-gradient(
-    #4e73df 0% 45%,
-    #1cc88a 45% 75%,
-    #36b9cc 75% 100%
+    #4E73DF 0% 45%,
+    #1CC88A 45% 75%,
+    #36B9CC 75% 100%
   );
   display: flex;
   align-items: center;
@@ -277,13 +258,13 @@ export const DashDonutChart = styled.div`
   .inner-circle {
     width: 110px;
     height: 110px;
-    background-color: #fff;
+    background-color: #FFF;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    color: #5a5c69;
+    color: #5A5C69;
   }
 `;
 export const DashLegendContainer = styled.div`
@@ -325,7 +306,7 @@ export const DashStatusItem = styled.div`
   justify-content: space-between;
   align-items: center;
   padding-bottom: 0.8rem;
-  border-bottom: 1px dashed #eaecf4;
+  border-bottom: 1px dashed #EAECF4;
 
   &:last-child {
     border-bottom: none;
@@ -334,7 +315,7 @@ export const DashStatusItem = styled.div`
 
   .label {
     font-size: 0.9rem;
-    color: #5a5c69;
+    color: #5A5C69;
     font-weight: 600;
     display: flex;
     align-items: center;
@@ -346,8 +327,10 @@ export const DashBadge = styled.span<{ $active: boolean }>`
   border-radius: 1rem;
   font-size: 0.75rem;
   font-weight: 700;
-  background-color: ${(props) => (props.$active ? "#1cc88a" : "#e74a3b")};
-  color: white;
+  background-color: ${(props) => (
+    props.$active ? "#1CC88A" : "#E74A3B"
+  )};
+  color: #FFF;
 `;
 
 // -----------------------------------------
@@ -397,12 +380,14 @@ export const SetConsultStatusBadge = styled.span<{$status: string}>`
   ${C.Badge}
   border-radius: 10rem;
   cursor: pointer;
-  ${C.TransitionAll}
+  transition: all 0.15s ease-in-out, margin 0s;
   ${({$status}) => ($status === "대기중" ? (`
+    margin: 0 0.9rem;
     color: #B45309;
     background-color: #FEF3C7;
     &:hover { background-color: #FDE68A; }
   `) : (`
+    margin: 0;
     color: #15803D;
     background-color: #DCFCE7;
     &:hover { background-color: #BBF7D0; }
@@ -410,6 +395,12 @@ export const SetConsultStatusBadge = styled.span<{$status: string}>`
 `;
 export const SetConsultDeleteButton = styled.button`
   ${C.DeleteButton}
+`;
+export const SetConsultPagination = styled.div`
+  ${C.Pagination}
+`;
+export const SetConsultPaginationButton = styled.button<{$active?: boolean}>`
+  ${C.PaginationButton}
 `;
 
 // -----------------------------------------
@@ -586,7 +577,7 @@ export const SetNavPreview = styled.div`
   
   img {
     width: auto;
-    max-height: 300px;
+    max-height: 100px;
     border-radius: 0.5rem;
     object-fit: cover;
   }
