@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { FiSave, FiPlus, FiTrash2, FiImage, FiClock } from "react-icons/fi";
 import usePopup from "@/components/contexts/PopupContext";
 import * as S from "@/assets/css/Style.style";
@@ -12,6 +13,7 @@ interface PopupData {
   startDate: string;
   endDate: string;
   useTodayClose: boolean;
+  fileName?: string;
 };
 
 export default function Pop() {
@@ -19,16 +21,7 @@ export default function Pop() {
   // 🎯 상태 관리: 팝업 글로벌 설정
   const [maxPopups, setMaxPopups] = useState<number>(1);
   // 🎯 상태 관리: 팝업 목록 데이터
-  const [popups, setPopups] = useState<PopupData[]>([
-    {
-      id: 1,
-      title: "가을맞이 첫방문 할인 이벤트",
-      link: "/event/autumn",
-      startDate: "2026-09-01T00:00",
-      endDate: "2026-10-31T23:59",
-      useTodayClose: true
-    }
-  ]);
+  const [popups, setPopups] = useState<PopupData[]>([]);
   // 🎯 상태 관리: 새 팝업 등록 폼
   const [newPopup, setNewPopup] = useState<Partial<PopupData>>({
     title: "",
@@ -37,17 +30,40 @@ export default function Pop() {
     endDate: "",
     useTodayClose: true
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
   const [currentTime, setCurrentTime] = useState(new Date().getTime());
   const [previewUrl, setPreviewUrl] = useState<string>("");
 
   // 실시간 상태 업데이트를 위한 타이머
   useEffect(() => {
+    fetchPopups();
     const timer = setInterval(
       () =>setCurrentTime(new Date().getTime()), 60000
     );
     return () => clearInterval(timer);
   }, []);
+
+  const fetchPopups = async () => {
+    try {
+      const response = await axios.get("/api/admin/popup");
+      if (response.data.success) {
+        setMaxPopups(response.data.maxPopups);
+        const formattedPopups = response.data.popups.map((p: any) => ({
+          id: p.POPUP_IDX,
+          title: p.TITLE,
+          link: p.LINK,
+          fileName: p.FILE_NAME,
+          startDate: p.START_DATE,
+          endDate: p.END_DATE,
+          useTodayClose: p.USE_TODAY_CLOSE === 'Y'
+        }));
+        setPopups(formattedPopups);
+      }
+    } catch (err) {
+      console.error("팝업 목록 로드 에러: ", err);
+    };
+  };
 
   // 🕒 날짜 비교 로직
   const getPopupStatus = (start: string, end: string) => {
@@ -79,35 +95,67 @@ export default function Pop() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setSelectedFile(file);
       setFileName(file.name);
       setPreviewUrl(URL.createObjectURL(file)); 
     };
   };
 
-  const handleAddPopup = () => {
-    if (!newPopup.title || !newPopup.startDate || !newPopup.endDate) {
+  const handleAddPopup = async () => {
+    if (!newPopup.title || !newPopup.startDate || !newPopup.endDate || !selectedFile) {
       openPopup("입력 오류", "제목과 시작/종료 일시를 모두 입력해주세요.");
       return;
     }
-    setPopups([...popups, { id: Date.now(), ...newPopup } as PopupData]);
-    setNewPopup({
-      title: "",
-      link: "",
-      startDate: "",
-      endDate: "",
-      useTodayClose: true
-    });
-    setFileName("");
-    setPreviewUrl("");
+    const formData = new FormData();
+    formData.append("popupImage", selectedFile);
+    formData.append("title", newPopup.title);
+    formData.append("link", newPopup.link || "");
+    formData.append("startDate", newPopup.startDate);
+    formData.append("endDate", newPopup.endDate);
+    formData.append("useTodayClose", String(newPopup.useTodayClose));
+
+    try {
+      const response = await axios.post("/api/admin/popup", formData, {
+        headers: {"Content-Type":"multipart/form-data"}
+      });
+      if (response.data.success)
+        openPopup("등록 완료", "팝업이 등록되었습니다.");
+      setNewPopup({
+        title: "",
+        link: "",
+        startDate: "",
+        endDate: "",
+        useTodayClose: true
+      });
+      setFileName("");
+      setSelectedFile(null);
+      setPreviewUrl("");
+      fetchPopups();
+    } catch (err) {
+      console.error("팝업 등록 에러: ", err);
+      openPopup("오류", "등록에 실패했습니다.");
+    };
   };
 
   const handleDelete = (id: number) => {
-    openPopup("확인", "정말 이 팝업을 삭제하시겠습니까?", () => {
-      setPopups(popups.filter(p => p.id !== id));
+    openPopup("확인", "정말 이 팝업을 삭제하시겠습니까?", async () => {
+      const response = await axios.delete(`/api/admin/popup/${id}`);
+      if (response.data.success)
+        fetchPopups();
     });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    try {
+      const response = await axios.put("/api/admin/popup/setting", {
+        maxPopups
+      });
+      if (response.data.success)
+        openPopup("저장 완료", "저장되었습니다.");
+    } catch (err) {
+      console.error("설정 저장 에러: ", err);
+      openPopup("오류", "저장에 실패했습니다.");
+    };
     const payload = { maxPopups, popups };
     console.log("DB에 저장될 데이터:", payload);
     openPopup("저장 완료", "팝업 설정이 성공적으로 저장되었습니다.");

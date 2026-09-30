@@ -6,7 +6,6 @@ import Link from "next/link";
 export const  HeaderWrapper = styled.header`
   width: 100%;
   background-color: #FFF;
-  border-bottom: 1px solid #F0F0F0;
   position: fixed;
   z-index: 9999;
 `;

@@ -4,105 +4,97 @@ module.exports = new EntitySchema({
   name: "Member",
   tableName: "MEMBER_TB",
   columns: {
-    USER_IDX:
-    {
+    USER_IDX: {
       primary: true, 
       type: "number",
       generated: "increment",             
     },
 
-    USER_NAME:
-    {
+    USER_NAME: {
       type: "varchar2", 
       length: 50, 
       unique: true,
       nullable: false,            
     },
 
-    USER_ID:
-    {
+    USER_ID: {
       type: "varchar2", 
       length: 50, 
       unique: true,
       nullable: false,            
     },
 
-    USER_PW:
-    {
+    USER_PW: {
       type: "varchar2", 
       length: 100,
       nullable: false,            
     },
 
-    EMAIL:
-    {
+    EMAIL: {
       type: "varchar2",
       length: 100,
       nullable: false,
       unique: true,         
     },
 
-    PHONE:
-    {
+    PHONE: {
       type: "varchar2", 
       length: 20, 
       nullable: false,             
     },
 
-    RESIDENT_NUM:
-    {
+    RESIDENT_NUM: {
       type: "varchar2",
       length: 255,
       nullable: false,
     },
 
-    ZIPCODE:
-    {
+    ZIPCODE: {
       type: "varchar2",
       length: 10,
       nullable: true,//우편번호는 (다음주소 API연동용)
     },
 
-    ADDRESS1:
-    {
+    ADDRESS1: {
       type: "varchar2",
       length: 200,
       nullable: true,
     },
 
-    ADDRESS2:
-    {
+    ADDRESS2: {
       type: "varchar2",
       length: 200,
       nullable: true,
     },
 
-    IS_SNS_AGREED:
-    {
+    IS_SNS_AGREED: {
       type: "char",
       length: 1,
       default: "N",
       nullable: false,       
     },
 
-    GENDER:
-    {
+    GENDER: {
       type: "varchar2",
       length: 10,
       nullable: true,        
     },
     
-    REG_DATE:
-    {
+    REG_DATE: {
       type: "date",
       createDate: true,        
     },
 
-    IS_ADMIN:
-    {
+    IS_ADMIN: {
       type: "number",
       default: 0,
       nullable:false,
+    },
+
+    STATUS: {
+      type: "varchar2",
+      length: 20,
+      default: "'정상'"
     }
   }
 });

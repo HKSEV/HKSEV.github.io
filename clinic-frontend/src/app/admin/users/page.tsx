@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { Temporal } from "@js-temporal/polyfill";
 import { FiTrash2, FiSearch, FiCheck, FiUserX } from "react-icons/fi";
 import usePopup from "@/components/contexts/PopupContext";
 import * as S from "@/assets/css/Style.style";
@@ -18,52 +20,106 @@ interface UserData {
 export default function Users() {
   const {openPopup, closePopup} = usePopup();
   // 🎯 상태 관리: 회원 목록
-  const [userList, setUserList] = useState<UserData[]>([
-    {
-      id: 1,
-      name: "홍길동",
-      userId: "hong123@test.com",
-      phone: "010-1234-5678",
-      joinDate: "2026-09-20",
-      status: "정상"
-    },
-    {
-      id: 2,
-      name: "김철수",
-      userId: "kim_ch@test.com",
-      phone: "010-9876-5432",
-      joinDate: "2026-09-18",
-      status: "정지"
-    },
-    {
-      id: 3,
-      name: "이영희",
-      userId: "young_hee@test.com",
-      phone: "010-5555-4444",
-      joinDate: "2026-09-15",
-      status: "정상"
-    },
-  ]);
+  const [userList, setUserList] = useState<UserData[]>([]);
+  // 페이징
+  const [totalCount, setTotalCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchData();
+  }, [currentPage, searchKeyword]);
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get("/api/admin/users", {
+        params: {
+          page: currentPage,
+          limit: 10,
+          search: searchKeyword
+        }
+      });
+      if (response.data.success && response.data.data) {
+        const formattedUsers = response.data.data.map((user: any) => ({
+          id: user.USER_IDX,
+          name: user.USER_NAME,
+          userId: user.USER_ID,
+          phone: user.PHONE,
+          joinDate: formatDate(user.REG_DATE),
+          status: user.STATUS || "정상",
+        }));
+        setUserList(formattedUsers);
+        setTotalCount(response.data.pagination. totalCount);
+        setTotalPages(response.data.pagination.totalPages);
+      };
+    } catch (err) {
+
+    } finally {
+      setIsLoading(false);
+    };
+  };
+
+  const handleSearch = () => {
+    setSearchKeyword(searchInput);
+    setCurrentPage(1); // 검색시 무조건 1페이지로 돌아가기
+  };
 
   // ----------------------------------------------------
   // 1. 회원 상태 변경 토글 (정상 <-> 정지)
   // ----------------------------------------------------
-  const toggleStatus = (id: number) => {
-    setUserList(userList.map(item =>
-      item.id === id
-      ? { ...item, status: item.status === "정상" ? "정지" : "정상" }
-      : item
-    ));
+  const toggleStatus = async (id: number) => {
+    try {
+      const response = await axios.put(`/api/admin/users/${id}/status`);
+      if (response.data.success)
+        fetchData();
+    } catch (err) {
+      console.error(err);
+    };
   };
 
   // ----------------------------------------------------
   // 2. 회원 삭제 기능 (팝업 열기 & 실제 삭제)
   // ----------------------------------------------------
   const handleDeleteUser = (id: number) => {
-    openPopup("확인", `해당 회원 정보를 정말 삭제하시겠습니까?${<br/>}(이 작업은 되돌릴 수 없습니다.)`, () => {
-      setUserList(userList.filter(item => item.id !== id));
-    });
+    try {
+      openPopup("확인", `해당 회원 정보를 정말 삭제하시겠습니까?${<br/>}(이 작업은 되돌릴 수 없습니다.)`, async () => {
+        const response = await axios.delete(`/api/admin/users/${id}`);
+        if (response.data.success)
+          fetchData();
+      });
+    } catch (err) {
+      console.error("회원 삭제 실패:", err);
+      openPopup("오류", "회원 삭제에 실패했습니다.");
+    };
   };
+
+  const formatDate = (dateString: string) => {
+      let dateTime;
+      
+      try {
+        // 1. UTC 기준 ISO 문자열일 경우 (예: 2026-09-21T05:30:00Z) -> 한국 시간으로 변환
+        dateTime = Temporal.Instant.from(dateString).toZonedDateTimeISO("Asia/Seoul");
+      } catch (error) {
+        // 2. 타임존 정보가 없는 일반 문자열일 경우 (예: 2026-09-21 14:30:00) 공백을 T로 치환 후 파싱
+        const safeString = dateString.replace(" ", "T");
+        dateTime = Temporal.PlainDateTime.from(safeString);
+      }
+  
+      // Temporal 객체에서 직관적으로 년/월/일/시/분 추출 (달이 0부터 시작하지 않고 1부터 시작함!)
+      const year = dateTime.year;
+      const month = String(dateTime.month).padStart(2, "0");
+      const day = String(dateTime.day).padStart(2, "0");
+      const hour = String(dateTime.hour).padStart(2, "0");
+      const minute = String(dateTime.minute).padStart(2, "0");
+  
+      return `${year}-${month}-${day} ${hour}:${minute}`;
+    };
+
+  if (isLoading)
+    return <></>;
 
   return (
     <S.UserContainer>
@@ -76,7 +132,10 @@ export default function Users() {
         <S.UserInputGroup>
           <S.UserInput
           type="text"
-          placeholder="이름, 아이디 또는 연락처 검색"/>
+          placeholder="이름, 아이디 또는 연락처 검색"
+          value={searchInput}
+          onChange={((e) => setSearchInput(e.target.value))}
+          onKeyDown={(e) => e.key === "Enter" && handleSearch()}/>
           <S.UserSearchButton>
             <FiSearch size={16}/>&nbsp;검색
           </S.UserSearchButton>
@@ -105,9 +164,9 @@ export default function Users() {
               </tr>
             </thead>
             <tbody>
-              {userList.map((item, index) => (
+              {userList.map((item, idx) => (
                 <tr key={item.id}>
-                  <td>{userList.length - index}</td>
+                  <td>{totalCount - ((currentPage - 1) * 10) - idx}</td>
                   <td><strong>{item.name}</strong></td>
                   <td>{item.userId}</td>
                   <td>{item.phone}</td>
@@ -138,6 +197,31 @@ export default function Users() {
             </tbody>
           </S.UserTable>
         </S.UserTableWrapper>
+
+        {totalPages > 0 && (
+          <S.UserPagination>
+            {currentPage > 1 && (
+              <S.UserPaginationArrow
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}>
+                &lt;
+              </S.UserPaginationArrow>
+            )}
+            {Array.from({length: totalPages}, (_, i) => i + 1).map((p) => (
+              <S.UserPaginationButton
+              key={p}
+              onClick={() => setCurrentPage(p)}
+              $active={p === currentPage}>
+                {p}
+              </S.UserPaginationButton>
+            ))}
+            {currentPage < totalPages && (
+              <S.UserPaginationArrow
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}>
+                &gt;
+              </S.UserPaginationArrow>
+            )}
+          </S.UserPagination>
+        )}
       </S.UserTableCard>
     </S.UserContainer>
   );

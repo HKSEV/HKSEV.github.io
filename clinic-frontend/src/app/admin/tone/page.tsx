@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { FiMoon, FiSun, FiCheck, FiSave } from "react-icons/fi";
 import usePopup from "@/components/contexts/PopupContext";
 import * as S from "@/assets/css/Style.style";
@@ -9,15 +10,46 @@ export default function Tone() {
   const {openPopup, closePopup} = usePopup();
   const [selectedTone, setSelectedTone] = useState<"BLUE"|"PINK">("BLUE");
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get("/api/admin/tone");
+      if (response.data.success) {
+        const dbData = response.data.data;
+        setSelectedTone(dbData.PRIMARY_TONE);
+        setIsDarkMode(dbData.IS_DARK_MODE === 'Y');
+      };
+    } catch (err) {
+      console.error("테마 설정 로드 실패: ", err);
+    } finally {
+      setIsLoading(false);
+    };
+  };
 
   const handleSave = async () => {
-    const payload = {
-      primaryTone: selectedTone,
-      isDarkMode: isDarkMode ? 'Y' : 'N'
+    try {
+      const payload = {
+        primaryTone: selectedTone,
+        isDarkMode: isDarkMode ? 'Y' : 'N'
+      };
+      const response = await axios.put("/api/admin/tone", payload);
+      if (response.data.success) {
+        console.log("DB에 저장될 데이터: ", payload);
+        openPopup("저장 완료", "톤앤매너 설정이 성공적으로 저장되었습니다.");
+      };
+    } catch (err) {
+      console.error("저장 실패: ", err);
+      openPopup("오류", "톤앤매너 설정 저장에 실패했습니다.");
     };
-    console.log("DB에 저장될 데이터: ", payload);
-    openPopup("완료", "톤앤매너 설정이 성공적으로 저장되었습니다.");
   };
+
+  if (isLoading)
+    return <></>;
 
   return (
     <S.ToneContainer>
@@ -76,6 +108,7 @@ export default function Tone() {
               </S.ToneModeButton>
               <S.ToneModeButton
               $isActive={isDarkMode}
+              $isDark={true}
               onClick={() => setIsDarkMode(true)}>
                 <FiMoon size={20}/>다크 모드
               </S.ToneModeButton>

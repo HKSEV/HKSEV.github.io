@@ -11,11 +11,11 @@ import { PopupProvider } from "../contexts/PopupContext";
 
 //헤더에 크기때문에 픽스했을때 잘리는 크기만큼..패딩 or 마진
 const MainWrapper = styled.main`
-  padding-top: 91px;
+  padding-top: 90px;
   min-height: 100vh;
   
   @media (max-width: 1024px) {
-    padding-top: 61px;
+    padding-top: 60px;
   }
 `;
 

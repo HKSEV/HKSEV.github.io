@@ -1,5 +1,6 @@
 // 환경변수(DB 비밀번호, 포트 번호 등)를 읽어서 프로그램에 적용
 require("dotenv").config();
+const { Like } = require("typeorm");
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
@@ -11,8 +12,11 @@ const nodemailer = require("nodemailer");
 const AppDataSource = require("./db");
 const Member = require("./src/entity/Member");
 const Consult = require("./src/entity/Consult");
+const ToneSetting = require("./src/entity/ToneSetting");
 const NavSetting = require("./src/entity/NavSetting");
 const MainVisual = require("./src/entity/MainVisual");
+const Popup = require("./src/entity/Popup");
+const PopupSetting = require("./src/entity/PopupSetting");
 const FooterSetting = require("./src/entity/FooterSetting");
 
 const app = express();
@@ -364,6 +368,44 @@ app.delete("/api/admin/consult/:id", async (req, res) => {
   };
 });
 
+// tone 톤앤매너 세팅
+app.get("/api/admin/tone", async (req, res) => {
+  try {
+    const toneRepository = AppDataSource.getRepository(ToneSetting);
+    let setting = await toneRepository.findOne({where: {ID: 1}});
+    if (!setting)
+      return res.status(200).json({
+        success: true,
+        data: {
+          PRIMARY_TONE: "BLUE",
+          IS_DARK_MODE: 'N'
+        }
+      });
+
+    res.status(200).json({success: true, data: setting});
+  } catch (err) {
+    console.error("테마 설정 조회 에러: ", err);
+    res.status(500).json({success: false});
+  };
+});
+app.put("/api/admin/tone", async (req, res) => {
+  try {
+    const {primaryTone, isDarkMode} = req.body;
+    const toneRepository = AppDataSource.getRepository(ToneSetting);
+    let setting = await toneRepository.findOne({where: {ID: 1}});
+    if (!setting)
+      setting = await toneRepository.create({ID: 1});
+
+    setting.PRIMARY_TONE = primaryTone;
+    setting.IS_DARK_MODE = isDarkMode;
+    await toneRepository.save(setting);
+    res.status(200).json({success: true});
+  } catch (err) {
+    console.error("테마 설정 조회 에러: ", err);
+    res.status(500).json({success: false});
+  };
+});
+
 // nav세팅
 app.get("/api/admin/nav", async (req, res) => {
   try {
@@ -469,6 +511,79 @@ app.put("/api/admin/visual", async (req, res) => {
   };
 });
 
+// popup세팅
+app.get("/api/admin/popup", async (req, res) => {
+  try {
+    const settingRepository = AppDataSource.getRepository(PopupSetting);
+    const popupRepository = AppDataSource.getRepository(Popup);
+    let setting = await settingRepository.findOne({where: {ID: 1}});
+    const popups = await popupRepository.find({order: {POPUP_IDX: "DESC"}});
+
+    res.status(200).json({
+      success: true,
+      maxPopups: setting ? setting.MAX_POPUPS : 1,
+      popups
+    });
+  } catch (err) {
+    console.error("팝업 조회 에러: ", err);
+    res.status(500).json({success: false});
+  };
+});
+app.put("/api/admin/popup/setting", async (req, res) => {
+  try {
+    const {maxPopups} = req.body;
+    const settingRepository = AppDataSource.getRepository(PopupSetting);
+    let setting = await settingRepository.findOne({where: {ID: 1}});
+    if (!setting)
+      setting = settingRepository.create({ID: 1});
+
+    setting.MAX_POPUPS = maxPopups;
+    await settingRepository.save(setting);
+    res.status(200).json({success: true});
+  } catch (err) {
+    console.error("팝업 저장 에러: ", err);
+    res.status(500).json({success: false});
+  };
+});
+app.post("/api/admin/popup", upload.single("popupImage"), async (req, res) => {
+  try {
+    if (!req.file)
+      return res.status(400).json({
+        success: false,
+        message: "이미지가 없습니다."
+      });
+
+    const {title, link, startDate, endDate, useTodayClose} = req.body;
+    const popupRepository = AppDataSource.getRepository(Popup);
+    const popups = await popupRepository.find({order: {POPUP_IDX: "DESC"}});
+    const newPopup = popupRepository.create({
+      TITLE: title,
+      LINK: link || "",
+      FILE_NAME: req.file.filename,
+      START_DATE: startDate,
+      END_DATE: endDate,
+      USE_TODAY_CLOSE: useTodayClose === "true" ? 'Y' : 'N'
+    });
+    await popupRepository.save(newPopup);
+    res.status(200).json({
+      success: true
+    });
+  } catch (err) {
+    console.error("이미지 저장 에러: ", err);
+    res.status(500).json({success: false});
+  };
+});
+app.delete("/api/admin/popup/:idx", async (req, res) => {
+  try {
+    const popupRepository = AppDataSource.getRepository(Popup);
+    await popupRepository.delete(req.params.idx);
+    res.status(200).json({success: true});
+  } catch (err) {
+    console.error("팝업 삭제 에러: ", err);
+    res.status(500).json({success: false});
+  };
+});
+
 // footer세팅 관리자
 app.get("/api/admin/footer", async (req, res) => {
   try {
@@ -535,6 +650,77 @@ app.post("/api/admin/footer", async (req, res) => {
       success: false,
       message: "푸터 저장 중 서버 오류가 발생했습니다."
     });
+  };
+});
+
+// users 회원 목록 조회
+app.get("/api/admin/users", async (req, res) => {
+  try {
+    const memberRepository = AppDataSource.getRepository(Member);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || "";
+    const skip = (page - 1) * limit;
+    const whereClause = search ? {USER_NAME: Like(`%${search}%`)} : {};
+    const [users, totalCount] = await memberRepository.findAndCount({
+      where: whereClause,
+      order: {USER_IDX: "DESC"},
+      skip: skip,
+      take: limit
+    });
+    const totalPages = Math.ceil(totalCount / limit);
+    res.status(200).json({
+      success: true,
+      data: users,
+      pagination: {
+        totalCount,
+        totalPages,
+        currentPage: page,
+        limit
+      }
+    });
+  } catch (err) {
+    console.error("회원 목록 조회 에러: ", err);
+    res.status(500).json({
+      success: false,
+      message: "서버 에러"
+    });
+  };
+});
+app.put("/api/admin/users/:idx/status", async (req, res) => {
+  try {
+    const memberRepository = AppDataSource.getRepository(Member);
+    const user = await memberRepository.findOne({
+      where: {USER_IDX: req.params.idx}
+    });
+    if (!user)
+      return res.status(404).json({
+        success: false,
+        message: "회원이 없습니다."
+      });
+
+    user.STATUS = user.STATUS === "정지" ? "정상" : "정지";
+    await memberRepository.save(user);
+    res.status(200).json({
+      success: true,
+      message: "상태가 변경되었습니다."
+    });
+  } catch (err) {
+    console.error("상태 변경 에러: ", err);
+    res.status(500).json({success: false});
+  };
+});
+app.delete("/api/admin/users/:idx", async (req, res) => {
+  try {
+    const memberRepository = AppDataSource.getRepository(Member);
+    const user = await memberRepository.delete(req.params.idx);
+    res.status(200).json({
+      success: true,
+      message: "삭제되었습니다."
+    });
+  } catch (err) {
+    console.error("삭제 에러: ", err);
+    res.status(500).json({success: false});
   };
 });
 // admin 종료

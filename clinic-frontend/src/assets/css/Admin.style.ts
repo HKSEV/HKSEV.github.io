@@ -1371,6 +1371,15 @@ export const UserStatusBadge = styled.span<{ $status: string }>`
 export const UserDeleteButton = styled.button`
   ${C.DeleteButton}
 `;
+export const UserPagination = styled.div`
+  ${C.Pagination}
+`;
+export const UserPaginationButton = styled.button<{$active?: boolean}>`
+  ${C.PaginationButton}
+`;
+export const UserPaginationArrow = styled.button`
+  ${C.PaginationArrow}
+`;
 
 // -----------------------------------------
 // 🎯 board

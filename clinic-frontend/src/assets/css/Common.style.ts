@@ -296,3 +296,13 @@ export const PaginationButton = css`
   border-radius: 4px;
   font-weight: ${({$active}: any) => ($active ? "bold" : "normal")};
 `;
+export const PaginationArrow = css`
+  ${FlexCenter}
+  width: 32px;
+  height: 32px;
+  border: 1px solid #DDD;
+  background-color: #FFF;
+  color: #333;
+  cursor: pointer;
+  border-radius: 4px;
+`;

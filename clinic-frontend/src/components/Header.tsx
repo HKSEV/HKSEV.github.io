@@ -20,6 +20,13 @@ export default function Header() {
   const [logoText, setLogoText] = useState<string>("");
   const [logoFileName, setLogoFileName] = useState<string>("");
   const [menus, setMenus] = useState<MenuItem[]>([]);
+  // 톤앤매너
+  const [themeColor, setThemeColor] = useState<string>("");
+  const [isDark, setIsDark] = useState<boolean>(false);
+
+  // 💡 다크모드에 따른 배경색과 글자색 변수 선언
+  const bgColor = isDark ? "#1A1A1A" : "#FFF";
+  const textColor = isDark ? "#FFF" : "#333";
 
   useEffect(() => {
     const fetchData = async () => {
@@ -43,14 +50,33 @@ export default function Header() {
             ]);
         };
       } catch (err) {
-        console.error("설정 로드 실패: ", err);
+        console.error("내비게이션 설정 로드 실패: ", err);
+      };
+    };
+    const fetchTheme = async () => {
+      try {
+        const response = await axios.get("/api/admin/tone");
+        if (response.data.success) {
+          const dbData = response.data.data;
+          setThemeColor(
+            dbData.PRIMARY_TONE === "PINK" ? "#E83E8C" : "#4E73DF"
+          );
+          setIsDark(dbData.IS_DARK_MODE === 'Y');
+        };
+      } catch (err) {
+        console.error("테마 설정 로드 실패: ", err);
       };
     };
     fetchData();
+    fetchTheme();
   }, []);
 
   return (
-    <S.HeaderWrapper>
+    <S.HeaderWrapper
+    style={{
+      backgroundColor: bgColor,
+      color: textColor
+    }}>
       <S.HeaderInner>
         {/* 로고 영역 */}
         <S.HeaderLogoGroup>
@@ -61,7 +87,9 @@ export default function Header() {
               onClick={() => router.push("/")}/>
             ) : (
               <Link href="/">
-                <S.HeaderLogo>{logoText}</S.HeaderLogo>
+                <S.HeaderLogo style={{color: themeColor}}>
+                  {logoText}
+                </S.HeaderLogo>
               </Link>
             )}
         </S.HeaderLogoGroup>
@@ -70,7 +98,9 @@ export default function Header() {
         <S.HeaderNavGroup>
           {menus.map((menu, idx) => (
             <Link href={menu.url || "/"} key={menu.id}>
-              <S.HeaderNavItem $active={idx === 1}>
+              <S.HeaderNavItem
+              $active={idx === 1}
+              style={{color: textColor}}>
                 {menu.name}
               </S.HeaderNavItem>
             </Link>
@@ -80,24 +110,61 @@ export default function Header() {
         {/* 유틸리티 영역 */}
         <S.HeaderUtilGroup>
           <S.HeaderDesktopOnly>
-            <S.HeaderPhoneButton href="tel:02-932-2222">
-              TEL.<span>02.932.2222</span>
+            <S.HeaderPhoneButton
+            href="tel:02-932-2222"
+            style={{
+              backgroundColor: isDark ? "#2A2A2A" : "#FFF",
+              borderColor: isDark ? "#444" : "#DDD",
+              color: textColor
+            }}>
+              TEL.<span style={{color: themeColor}}>02.932.2222</span>
             </S.HeaderPhoneButton>
-            <S.HeaderCtaButton>상담예약</S.HeaderCtaButton>
-            <S.HeaderIconButton aria-label="Language">
+            <S.HeaderCtaButton
+            style={{
+              backgroundColor: themeColor,
+              color: "#FFF",
+              border: "none"
+            }}>
+              상담예약
+            </S.HeaderCtaButton>
+            <S.HeaderIconButton
+            aria-label="Language"
+            style={{
+              backgroundColor: isDark ? "#2A2A2A" : "#FFF",
+              borderColor: isDark ? "#444" : "#DDD",
+              color: textColor
+            }}>
               <GlobeIcon/>
             </S.HeaderIconButton>
-            <S.HeaderIconButton aria-label="My Page">
+            <S.HeaderIconButton
+            aria-label="My Page"
+            style={{
+              backgroundColor: isDark ? "#2A2A2A" : "#FFF",
+              borderColor: isDark ? "#444" : "#DDD",
+              color: textColor
+            }}>
               <UserIcon/>
             </S.HeaderIconButton>
           </S.HeaderDesktopOnly>
           {/* 모바일 화면일때만 나타나는 요소들 */}
-          <S.HeaderMobilePillButton>Men's</S.HeaderMobilePillButton>
-          <S.HeaderMobilePillButton>Breast</S.HeaderMobilePillButton>
+          <S.HeaderMobilePillButton
+          style={{
+            backgroundColor: themeColor,
+            color: "#FFF"
+          }}>
+            Men's
+          </S.HeaderMobilePillButton>
+          <S.HeaderMobilePillButton
+          style={{
+            backgroundColor: themeColor,
+            color: "#FFF"
+          }}>
+            Breast
+          </S.HeaderMobilePillButton>
           <S.HeaderHamburgerButton aria-label="Mobile Menu">
-            <span></span>
-            <span></span>
-            <span></span>
+            <span style={{backgroundColor: textColor}}></span>
+            <span style={{backgroundColor: textColor}}></span>
+            <span style={{backgroundColor: textColor}}></span>
           </S.HeaderHamburgerButton>
         </S.HeaderUtilGroup>
       </S.HeaderInner>

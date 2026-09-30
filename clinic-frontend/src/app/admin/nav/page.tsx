@@ -20,6 +20,7 @@ export default function Nav() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [menus, setMenus] = useState<MenuItem[]>([]);
   const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,6 +48,8 @@ export default function Nav() {
         };
       } catch (err) {
         console.error("설정 로드 실패: ", err);
+      } finally {
+        setIsLoading(false);
       };
     };
     fetchData();
@@ -78,7 +81,6 @@ export default function Nav() {
   };
   const handleSave = async () => {
     let finalFileName = logoFileName;
-
     try {
       if (logoType === "IMAGE" && logoFile) {
         const formData = new FormData();
@@ -91,20 +93,22 @@ export default function Nav() {
           setLogoFileName(finalFileName);
         };
       };
-
       const payload = {
         logoType: logoType,
         logoText: logoType === "TEXT" ? logoText : "",
         logoFileName: logoType === "IMAGE" ? finalFileName : null,
         menus: menus
       };
-    console.log("DB에 저장될 데이터: ", payload);
+      console.log("DB에 저장될 데이터: ", payload);
       await axios.put("/api/admin/nav", payload);
       openPopup("저장완료", "내비게이션 설정이 성공적으로 저장되었습니다.");
     } catch (err) {
       openPopup("오류", "설정 저장에 실패했습니다.");
     };
   };
+
+  if (isLoading)
+    return <></>;
 
   return (
     <S.SetNavContainer>
