@@ -1,51 +1,47 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
+import axios from "axios";
 import * as S from "@/assets/css/Style.style";
 
-//슬라이더에 들어갈 임시 데이터 배열
-const SELFIE_DATA = [
-  {
-    id: 1,
-    img: "/images/main/selfie/selfie1.png",
-    likes: "892",
-    views: "7,921"
-  },
-  {
-    id: 2,
-    img: "/images/main/selfie/selfie2.png",
-    likes: "892",
-    views: "7,921"
-  },
-  {
-    id: 3,
-    img: "/images/main/selfie/selfie3.png",
-    likes: "892",
-    views: "7,921"
-  },
-  {
-    id: 4,
-    img: "/images/main/selfie/selfie4.png",
-    likes: "892",
-    views: "7,921"
-  },
-  {
-    id: 5,
-    img: "/images/main/selfie/selfie5.png",
-    likes: "892",
-    views: "7,921"
-  },
-  {
-    id: 6,
-    img: "/images/main/selfie/selfie6.png",
-    likes: "892",
-    views: "7,921"
-  },
-];
+interface SelfieData {
+  id: number;
+  img: string;
+  likes: number;
+  views: number;
+};
 
 export default function Selfies() {
   // 🎯 가로 스크롤 영역을 조작하기 위한 훅
   const sliderRef = useRef<HTMLDivElement>(null);
+  const [selfies, setSelfies] = useState<SelfieData[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get("/api/admin/selfie");
+        if (response.data.success) {
+          // 관리자가 '노출중(Y)'으로 설정한 데이터만 골라내기
+          const activeSelfies = response.data.data.filter(
+            (s: any) => s.IS_ACTIVE === 'Y'
+          );
+          
+          // 프론트엔드에서 쓰기 편하게 데이터 모양 다듬기
+          const formatted = activeSelfies.map((s: any) => ({
+            id: s.SELFIE_IDX,
+            img: `/images/${s.FILE_NAME}`, // 실제 이미지 경로
+            likes: s.LIKES,
+            views: s.VIEWS
+          }));
+          setSelfies(formatted);
+        };
+      } catch (err) {
+        console.error("셀피 데이터 로드 실패: ", err);
+      };
+    };
+    fetchData();
+  }, []);
+
   // 화살표 클릭 시 좌우로 300px씩 스크롤하는 함수
   const scroll = (direction: "left" | "right") => {
     if(sliderRef.current) {
@@ -79,7 +75,7 @@ export default function Selfies() {
 
         {/*🎯 사진 슬라이더 영역 */}
         <S.SelfieSliderWrapper ref={sliderRef}>
-          {SELFIE_DATA.map((item) => (
+          {selfies.map((item) => (
             <S.SelfieCard key={item.id}>
               <img src={item.img} alt={`selfie${item.id}`}/>
               <S.SelfieCardOverlay>

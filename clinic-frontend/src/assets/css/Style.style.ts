@@ -1,4 +1,5 @@
 import styled, { createGlobalStyle, keyframes } from "styled-components";
+import Link from "next/link";
 import * as C from "./Common.style"
 
 export const MAIN_COLOR = "#FFE6F0";
@@ -389,6 +390,15 @@ export const CloseBtn = styled.button`
   align-items: center;
   justify-content: center;
   padding: 0;
+`;
+export const PopupLink = styled(Link)<{$hasLink: boolean}>`
+  display: block;
+  cursor: ${({$hasLink}) => ($hasLink ? "pinter" : "default")};
+  text-decoration: none;
+`;
+export const PopupImage = styled.img`
+  width: 100%;
+  
 `;
 
 // CircularOverlay

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { FiSave, FiPlus, FiTrash2, FiImage, FiArrowUp, FiArrowDown } from "react-icons/fi";
 import usePopup from "@/components/contexts/PopupContext";
 import * as S from "@/assets/css/Style.style";
@@ -15,61 +16,86 @@ interface CategoryData {
 export default function News() {
   const {openPopup, closePopup} = usePopup();
   // 🎯 상태 관리: 등록된 카테고리 아이콘 목록
-  const [categories, setCategories] = useState<CategoryData[]>([
-    {
-      id: 1,
-      title: "전체",
-      imageUrl: "",
-      link: "/all"
-    },
-    {
-      id: 2,
-      title: "눈",
-      imageUrl: "",
-      link: "/eye"
-    },
-    {
-      id: 3,
-      title: "코",
-      imageUrl: "",
-      link: "/nose"
-    }
-  ]);
+  const [categories, setCategories] = useState<CategoryData[]>([]);
   // 🎯 상태 관리: 새 카테고리 등록 폼
   const [newCategory, setNewCategory] = useState({ title: "", link: "" });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get("/api/admin/category");
+      if (response.data.success) {
+        const formatted = response.data.data.map((c: any) => ({
+          id: c.CATEGORY_IDX,
+          title: c.TITLE,
+          imageUrl: `/images/${c.FILE_NAME}`,
+          link: c.LINK
+        }));
+        setCategories(formatted);
+      };
+    } catch (err) {
+      console.error("뉴스 목록 로드 에러: ", err);
+    } finally {
+      setIsLoading(false);
+    };
+
+  };
 
   // 이미지 첨부 및 썸네일 미리보기 처리
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setSelectedFile(file);
       setFileName(file.name);
       setPreviewUrl(URL.createObjectURL(file)); // 로컬 썸네일 미리보기 생성
     };
   };
 
   // 카테고리 추가
-  const handleAddCategory = () => {
-    if (!newCategory.title) {
-      openPopup("입력 오류", "카테고리 이름을 입력해주세요.");
+  const handleAddCategory = async () => {
+    if (!newCategory.title || !selectedFile) {
+      openPopup("입력 오류", "카테고리 이름과 이미지를 모두 입력/등록해주세요.");
       return;
     };
-    setCategories([...categories, { 
-      id: Date.now(), 
-      title: newCategory.title, 
-      imageUrl: previewUrl, 
-      link: newCategory.link 
-    }]);
-    setNewCategory({ title: "", link: "" });
-    setFileName("");
-    setPreviewUrl("");
+
+    const formData = new FormData();
+    formData.append("categoryImage", selectedFile);
+    formData.append("title", newCategory.title);
+    formData.append("link", newCategory.link || "");
+
+    try {
+      const response = await axios.post("/api/admin/category", formData, {
+        headers: {"Content-Type":"multipart/form-data"}
+      });
+      if (response.data.success) {
+        setNewCategory({title: "", link: ""});
+        setSelectedFile(null);
+        setFileName("");
+        setPreviewUrl("");
+        fetchData();
+      };
+    } catch (err) {
+      openPopup("오류", "등록 에러");
+    };
   };
 
   // 카테고리 삭제
   const handleDelete = (id: number) => {
-    openPopup("확인", "해당 카테고리 아이콘을 삭제하시겠습니까?", () => {
-      setCategories(categories.filter(c => c.id !== id));
+    openPopup("확인", "해당 카테고리 아이콘을 삭제하시겠습니까?", async () => {
+      try {
+        const response = await axios.delete(`/api/admin/category/${id}`);
+        if (response.data.success)
+          fetchData();
+      } catch (err) {
+        openPopup("오류", "삭제 실패");
+      };
     });
   };
 
@@ -86,10 +112,19 @@ export default function News() {
   };
 
   // 최종 저장
-  const handleSave = () => {
-    console.log("DB에 저장될 데이터:", categories);
-    openPopup("저장 완료", "카테고리 설정이 성공적으로 저장되었습니다.");
+  const handleSave = async () => {
+    const orderedIds = categories.map(c => c.id);
+    try {
+      const response = await axios.put("/api/admin/category/order", orderedIds);
+      if (response.data.success)
+        openPopup("저장 완료", "카테고리 설정이 성공적으로 저장되었습니다.");
+    } catch (err) {
+      openPopup("오류", "순서 저장 실패");
+    };
   };
+
+  if (isLoading)
+    return null;
 
   return (
     <S.NewsContainer>

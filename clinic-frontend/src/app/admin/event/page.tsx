@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   FiSave,
   FiPlus,
@@ -21,66 +22,84 @@ interface EventRakingData {
 
 export default function Event() {
   const {openPopup, closePopup} = usePopup();
-  const [events, setEvents] = useState<EventRakingData[]>([
-    {
-      id: 1,
-      title: "다다고성형",
-      price: "149만원",
-      imageUrl: "" },
-    {
-      id: 2,
-      title: "다다고성형",
-      price: "149만원",
-      imageUrl: ""
-    },
-    {
-      id: 3,
-      title: "다다고성형",
-      price: "149만원",
-      imageUrl: ""
-    },
-    {
-      id: 4,
-      title: "다다고성형",
-      price: "149만원",
-      imageUrl: ""
-    },
-  ]);
+  const [events, setEvents] = useState<EventRakingData[]>([]);
   const [newEvent, setNewEvent] = useState({title: "", price: ""});
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState<string>("");
   const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get("/api/admin/event");
+      if (response.data.success) {
+        const formatted = response.data.data.map((item: any) => ({
+          id: item.EVENT_IDX,
+          title: item.TITLE,
+          price: item.PRICE,
+          imageUrl: `/images/${item.FILE_NAME}`
+        }));
+        setEvents(formatted);
+      };
+    } catch (err) {
+      console.error("이벤트 목록 로드 실패: ", err);
+    } finally {
+      setIsLoading(false);
+    };
+  };
 
   // 이미지 첨부 및 썸네일 미리보기
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setSelectedFile(file);
       setFileName(file.name);
       setPreviewUrl(URL.createObjectURL(file)); 
     };
   };
 
   // 이벤트 추가
-  const handleAddEvent = () => {
-    if (!newEvent.title || !newEvent.price || !previewUrl) {
+  const handleAddEvent = async () => {
+    if (!newEvent.title || !newEvent.price || !previewUrl || !selectedFile) {
       openPopup("입력 오류", "이미지, 타이틀, 가격을 모두 입력해주세요.");
       return;
-    }
-    setEvents([...events, {
-      id: Date.now(),
-      title: newEvent.title,
-      price: newEvent.price,
-      imageUrl: previewUrl
-    }]);
-    setNewEvent({title: "", price: ""});
-    setFileName("");
-    setPreviewUrl("");
+    };
+    
+    const formData = new FormData();
+    formData.append("eventImage", selectedFile);
+    formData.append("title", newEvent.title);
+    formData.append("price", newEvent.price);
+
+    try {
+      const response = await axios.post("/api/admin/event", formData, {
+        headers: { "Content-Type":"multipart/form-data" }
+      });
+      if (response.data.success) {
+        //[초기화] 추가가 끝났으니, 입력창을 다시 텅 빈 상태로
+        setNewEvent({title:"", price:""});
+        setSelectedFile(null);
+        setFileName("");
+        setPreviewUrl("");
+        fetchData(); // 목록 새로고침
+      };
+    } catch (err) {
+      openPopup("오류", "이벤트 등록에 실패했습니다.");
+    };
   };
 
   // 이벤트 삭제
-  const handleDelete = (id: number) => {
-    openPopup("확인", "해당 이벤트를 랭킹에서 삭제하시겠습니까?", () => {
-      setEvents(events.filter(e => e.id !== id));
-    });
+  const handleDelete = async (id: number) => {
+    try {
+      const response = await axios.delete(`/api/admin/event/${id}`);
+      if (response.data.success)
+        fetchData();
+    } catch (err) {
+      openPopup("오류", "삭제 실패");
+    };
   };
 
   // 랭킹 순서 변경 (위/아래)
@@ -96,10 +115,21 @@ export default function Event() {
   };
 
   // 최종 저장
-  const handleSave = () => {
-    console.log("DB에 저장될 데이터: ", events);
-    openPopup("저장 완료", "이벤트 랭킹 설정이 성공적으로 저장되었습니다.");
+  const handleSave = async () => {
+    const orderedIds = events.map(e => e.id);
+    try {
+      const response = await axios.put("/api/admin/event/order", {
+        orderedIds
+      });
+      if (response.data.success)
+        openPopup("저장 완료", "이벤트 랭킹 설정이 성공적으로 저장되었습니다.");
+    } catch (error) {
+      openPopup("오류", "순서 저장 실패");
+    };
   };
+
+  if (isLoading)
+    return null;
 
   return (
     <S.SetEventContainer>
@@ -145,7 +175,7 @@ export default function Event() {
 
               <div style={{ display: "flex", gap: "1rem" }}>
                 <S.SetEventFormGroup style={{ flex: 1 }}>
-                  <S.SetEventLabel>타이틀 (예: 다다고성형)</S.SetEventLabel>
+                  <S.SetEventLabel>타이틀 (예: 다다코성형)</S.SetEventLabel>
                   <S.SetEventInput 
                   type="text" 
                   value={newEvent.title}

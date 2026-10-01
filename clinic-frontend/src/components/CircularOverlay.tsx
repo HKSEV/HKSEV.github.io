@@ -1,67 +1,18 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
+import axios from "axios";
 import * as S from "@/assets/css/Style.style";
 
-const EVENT_DATA = [
-  {
-    id: 1,
-    rank: "1",
-    name: "다다코 성형",
-    price: '149',
-    img: "./images/main/circular/event1.jpg",
-    color: "#FFCCED",
-    radius: "50%",
-  },
-  {
-    id: 2,
-    rank: "2",
-    name: "다다코 성형",
-    price: '149',
-    img: "./images/main/circular/event2.jpg",
-    color: "#FFFFCC",
-    radius: "50%",
-  },
-  {
-    id: 3,
-    rank: "3",
-    name: "다다코 성형",
-    price: '149',
-    img: "./images/main/circular/event3.jpg",
-    color: "#FFCCED",
-    radius: "50%"
-  },
-  {
-    id: 4,
-    rank: "4",
-    name: "다다코 성형",
-    price: '149',
-    img: "./images/main/circular/event4.jpg",
-    color: "#FFFFCC",
-    radius: "50%"
-  },
-];
-
-// 🎯 마우스 오버 시 나타날 원형 텍스트 컴포넌트
-const CircularOverlay = () => (
-  <S.HoverSvg viewBox="0 0 100 100">
-    <path 
-    id="textCircle" 
-    d="M 50, 50 m -40, 0 a 40,40 0 1,1 80,0 a 40,40 0 1,1 -80,0" 
-    fill="none"/>
-    <text>
-      <textPath 
-      href="#textCircle" 
-      startOffset="0" 
-      fill="rgba(255, 255, 255, 0.85)" 
-      fontSize="6.5" 
-      fontWeight="bold"
-      letterSpacing="2.5">
-        DA PLASTIC SURGERY DA PLASTIC SURGERY DA PLASTIC SURGERY
-      </textPath>
-    </text>
-  </S.HoverSvg>
-);
+interface EventData {
+  id: number;
+  rank: number;
+  name: string;
+  price: string;
+  img: string;
+  color: string;
+  radius: string;
+};
 
 // 🎯 사진의 변한 테두리 모양을 완벽하게 따라가는 텍스트 컴포넌트
 const ArchTextOverlay = () => (
@@ -91,6 +42,32 @@ const ArchTextOverlay = () => (
 
 export default function EventRanking() {
   const sliderRef = useRef<HTMLDivElement>(null);
+  const [events, setEvents] = useState<EventData[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get("/api/admin/event");
+        if (response.data.success) {
+          const formatted = response.data.data.map((item: any, index: number) => ({
+            id: item.EVENT_IDX,
+            rank: index + 1, // 배열 순서대로 1, 2, 3... 랭크 부여
+            name: item.TITLE,
+            // 관리자가 "149만원"이라고 써도 화면 하단의 <span>만원</span>과 겹치지 않게 "만원" 글자 제거
+            price: item.PRICE.replace("만원", "").trim(), 
+            img: `/images/${item.FILE_NAME}`, // 실제 이미지 경로
+            // 짝수 번째(0, 2, 4..)는 핑크, 홀수 번째(1, 3..)는 옐로우 배경 교차 적용
+            color: index % 2 === 0 ? "#FFCCED" : "#FFC", 
+            radius: "50%"
+          }));
+          setEvents(formatted);
+        };
+      } catch (err) {
+        console.error("이벤트 데이터 로드 실패: ", err);
+      };
+    };
+    fetchData();
+  }, []);
 
   const scroll = (direction: "left" | "right") => {
     if (sliderRef.current) {
@@ -125,7 +102,7 @@ export default function EventRanking() {
         </S.EventHeader>
 
         <S.EventSliderWrapper ref={sliderRef}>
-          {EVENT_DATA.map((item) => (
+          {events.map((item) => (
             <S.EventCard key={item.id}>
               {/* 왼쪽 위로 튀어나온 랭크 뱃지 */}
               <S.RankBadge $bgColor={item.color} $radius={item.radius}>

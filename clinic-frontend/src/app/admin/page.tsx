@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 // 💡 직통 임포트(Direct Import)를 사용하여 스타일 깨짐 방지
 import { 
   FiMessageSquare, FiUsers, FiStar, FiClipboard, 
@@ -9,14 +10,78 @@ import {
 } from "react-icons/fi";
 import * as S from "@/assets/css/Style.style";
 
+interface DashboardStats {
+  consultationsCount: 0,
+  membersCount: 0,
+  eventsCount: 0,
+  boardsCount: 0,
+  popupsCount: 0,
+  selfiesCount: 0,
+  vlogsCount: 0,
+  safetyCount: 0
+};
+
+
+
 export default function AdminPage() {
-  // 임시 차트 데이터
   const monthlyData = [
     { month: "1월", value: 40 }, { month: "2월", value: 65 },
     { month: "3월", value: 45 }, { month: "4월", value: 80 },
     { month: "5월", value: 55 }, { month: "6월", value: 90 },
     { month: "7월", value: 75 }
   ];
+  const [stats, setStats] = useState<DashboardStats>({
+    consultationsCount: 0,
+    membersCount: 0,
+    eventsCount: 0,
+    boardsCount: 0,
+    popupsCount: 0,
+    selfiesCount: 0,
+    vlogsCount: 0,
+    safetyCount: 0,
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAllData = async () => {
+      try {
+        const [
+          consultRes, usersRes, eventsRes, boardsRes, 
+          popupsRes, selfiesRes, vlogsRes, safetyRes
+        ] = await Promise.all([
+          axios.get("/api/admin/consult").catch(() => ({ data: { data: [] } })),
+          axios.get("/api/admin/users").catch(() => ({ data: { pagination: { totalCount: 0 } } })),
+          axios.get("/api/admin/event").catch(() => ({ data: { data: [] } })),
+          axios.get("/api/admin/board").catch(() => ({ data: { data: [] } })),
+          axios.get("/api/admin/popup").catch(() => ({ data: { popups: [] } })),
+          axios.get("/api/admin/selfie").catch(() => ({ data: { data: [] } })),
+          axios.get("/api/admin/vlog").catch(() => ({ data: { data: [] } })),
+          axios.get("/api/admin/safety").catch(() => ({ data: { data: [] } }))
+        ]);
+
+        setStats({
+          consultationsCount: consultRes.data.data?.length || 0,
+          // 💡 users API는 pagination 구조 안에 totalCount가 있으므로 이를 활용!
+          membersCount: usersRes.data.pagination?.totalCount || 0,
+          eventsCount: eventsRes.data.data?.length || 0,
+          boardsCount: boardsRes.data.data?.length || 0,
+          // 💡 popups API는 응답 구조가 { popups: [...] } 임을 반영
+          popupsCount: popupsRes.data.popups?.length || 0,
+          selfiesCount: selfiesRes.data.data?.length || 0,
+          vlogsCount: vlogsRes.data.data?.length || 0,
+          safetyCount: safetyRes.data.data?.length || 0,
+        });
+      } catch (err) {
+        console.error("대시보드 실제데이터 연동 실패: ", err);
+      } finally {
+        setIsLoading(false);
+      };
+    };
+    fetchAllData();
+  }, []);
+
+  if (isLoading)
+    return null;
 
   return (
     <S.DashContainer>
@@ -29,9 +94,11 @@ export default function AdminPage() {
           <S.DashSummaryBody>
               <div>
                 <S.DashSummaryTitle $textColor="#4E73DF">
-                  신규 상담 신청 (월간)
+                  신규 상담 신청 (누적)
                 </S.DashSummaryTitle>
-                <S.DashSummaryValue>150 건</S.DashSummaryValue>
+                <S.DashSummaryValue>
+                  {stats.consultationsCount.toLocaleString()} 건
+                </S.DashSummaryValue>
               </div>
               <S.DashSummaryIcon>
                 <FiMessageSquare size={32}/>
@@ -46,7 +113,9 @@ export default function AdminPage() {
               <S.DashSummaryTitle $textColor="#1CC88A">
                 총 가입 회원
               </S.DashSummaryTitle>
-              <S.DashSummaryValue>2,450 명</S.DashSummaryValue>
+              <S.DashSummaryValue>
+                {stats.membersCount.toLocaleString()} 명
+              </S.DashSummaryValue>
             </div>
             <S.DashSummaryIcon>
               <FiUsers size={32}/>
@@ -61,7 +130,9 @@ export default function AdminPage() {
                 <S.DashSummaryTitle $textColor="#36B9CC">
                   진행중인 이벤트
                 </S.DashSummaryTitle>
-                <S.DashSummaryValue>8 개</S.DashSummaryValue>
+                <S.DashSummaryValue>
+                  {stats.eventsCount.toLocaleString()} 개
+                </S.DashSummaryValue>
               </div>
               <S.DashSummaryIcon>
                 <FiStar size={32}/>
@@ -74,9 +145,11 @@ export default function AdminPage() {
           <S.DashSummaryBody>
             <div>
               <S.DashSummaryTitle $textColor="#F6C23E">
-                답변 대기 게시물
+                운영 중인 게시판
               </S.DashSummaryTitle>
-              <S.DashSummaryValue>12 건</S.DashSummaryValue>
+              <S.DashSummaryValue>
+                {stats.boardsCount.toLocaleString()} 개
+              </S.DashSummaryValue>
             </div>
             <S.DashSummaryIcon>
               <FiClipboard size={32}/>
@@ -174,7 +247,9 @@ export default function AdminPage() {
                 <div className="label">
                   <FiImage/>&nbsp;팝업 관리
                 </div>
-                <S.DashBadge $active={true}>활성 2건</S.DashBadge>
+                <S.DashBadge $active={true}>
+                  활성 {stats.popupsCount}건
+                </S.DashBadge>
               </S.DashStatusItem>
               <S.DashStatusItem>
                 <div className="label">
@@ -186,7 +261,9 @@ export default function AdminPage() {
                 <div className="label">
                   <FiImage/>&nbsp;셀피 관리
                 </div>
-                <S.DashBadge $active={true}>신규 5건</S.DashBadge>
+                <S.DashBadge $active={true}>
+                  총 {stats.selfiesCount}건 등록됨
+                </S.DashBadge>
               </S.DashStatusItem>
             </S.DashStatusList>
           </S.DashChartBody>
@@ -202,11 +279,19 @@ export default function AdminPage() {
             <S.DashStatusList>
               <S.DashStatusItem>
                 <div className="label"><FiVideo/>&nbsp;VLOG 관리</div>
-                <S.DashBadge $active={true}>영상 12개</S.DashBadge>
+                <S.DashBadge $active={true}>
+                  영상 {stats.vlogsCount}개
+                </S.DashBadge>
               </S.DashStatusItem>
               <S.DashStatusItem>
-                <div className="label"><FiShield/>&nbsp;안전마취 관리</div>
-                <S.DashBadge $active={true}>시스템 정상</S.DashBadge>
+                <div className="label">
+                  <FiShield/>&nbsp;안전마취 관리
+                </div>
+                <S.DashBadge $active={stats.safetyCount > 0}>
+                  {stats.safetyCount > 0
+                  ? `등록 ${stats.safetyCount}건 (정상)`
+                  : "등록 대기"}
+                </S.DashBadge>
               </S.DashStatusItem>
             </S.DashStatusList>
           </S.DashChartBody>

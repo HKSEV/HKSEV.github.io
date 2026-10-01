@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   FiSave,
   FiPlus,
@@ -24,25 +25,37 @@ interface VlogData {
 export default function Vlog() {
   const {openPopup, closePopup} = usePopup();
   // 🎯 상태 관리: 등록된 VLOG 목록
-  const [vlogList, setVlogList] = useState<VlogData[]>([
-    {
-      id: 1,
-      title: "답답했던 눈매·복코·얼굴살 완벽...",
-      videoUrl: "https://youtube.com/...",
-      thumbnailUrl: ""
-    },
-    {
-      id: 2,
-      title: "광대·사각턱·이중턱 싹 지우고...",
-      videoUrl: "https://youtube.com/...",
-      thumbnailUrl: ""
-    }
-  ]);
+  const [vlogList, setVlogList] = useState<VlogData[]>([]);
 
   // 🎯 상태 관리: 새 VLOG 등록 폼
   const [newVlog, setNewVlog] = useState({ title: "", videoUrl: "" });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get("/api/admin/vlog");
+      if (response.data.success) {
+        const formatted = response.data.data.map((item: any) => ({
+          id: item.VLOG_IDX,
+          title: item.TITLE,
+          videoUrl: item.VIDEO_URL,
+          thumbnailUrl: `/images/${item.FILE_NAME}`
+        }));
+        setVlogList(formatted);
+      };
+    } catch (err) {
+      console.error("VLOG 데이터 로드 실패: ", err);
+    } finally {
+      setIsLoading(false);
+    };
+  };
 
   // ----------------------------------------------------
   // 0. 이미지 첨부 및 썸네일(16:9) 미리보기 기능
@@ -50,6 +63,7 @@ export default function Vlog() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file) {
+        setSelectedFile(file);
           setFileName(file.name);
           setPreviewUrl(URL.createObjectURL(file)); 
       };
@@ -58,28 +72,32 @@ export default function Vlog() {
   // ----------------------------------------------------
   // 1. VLOG 추가 기능
   // ----------------------------------------------------
-  const handleAddVlog = () => {
+  const handleAddVlog = async () => {
     // [검증] 빈칸이 하나라도 있으면 경고 팝업 띄우기
-    if (!newVlog.title || !newVlog.videoUrl || !previewUrl) {
+    if (!newVlog.title || !newVlog.videoUrl || !previewUrl || !selectedFile) {
       openPopup("입력 오류", "썸네일 이미지, 제목, 영상 링크를 모두 입력해주세요.");
       return;
-    }
+    };
 
-    // [추가] 기존 목록 끝에 새로운 VLOG 데이터 추가하기
-    setVlogList([
-      ...vlogList, 
-      { 
-        id: Date.now(), 
-        title: newVlog.title, 
-        videoUrl: newVlog.videoUrl, 
-        thumbnailUrl: previewUrl
-      } 
-    ]);
+    const formData = new FormData();
+    formData.append("vlogImage", selectedFile);
+    formData.append("title", newVlog.title);
+    formData.append("videoUrl", newVlog.videoUrl);
 
-    // [초기화] 입력 폼 비우기
-    setNewVlog({ title: "", videoUrl: "" }); 
-    setFileName(""); 
-    setPreviewUrl(""); 
+    try {
+      const response = await axios.post("/api/admin/vlog", formData, {
+        headers: { "Content-Type":"multipart/form-data" }
+      });
+      if (response.data.success) {
+        setNewVlog({ title: "", videoUrl: "" }); 
+        setSelectedFile(null);
+        setFileName(""); 
+        setPreviewUrl(""); 
+        fetchData(); // 등록 후 목록 새로고침
+      };
+    } catch (error) {
+      openPopup("오류", "VLOG 등록에 실패했습니다.");
+    };
   };
 
   // ----------------------------------------------------
@@ -87,8 +105,14 @@ export default function Vlog() {
   // ----------------------------------------------------
   // 삭제 버튼(휴지통) 클릭 시 호출
   const handleDeleteVlog = (id: number) => { 
-    openPopup("확인", "해당 영상을 노출 리스트에서 삭제하시겠습니까?", () => {
-      setVlogList(vlogList.filter(v => v.id !== id));
+    openPopup("확인", "해당 영상을 노출 리스트에서 삭제하시겠습니까?", async () => {
+      try {
+        const response = await axios.delete(`/api/admin/vlog/${id}`);
+        if (response.data.success)
+          fetchData();
+      } catch (error) {
+        openPopup("오류", "삭제 중 문제가 발생했습니다.");
+      };
     });
   };
 
@@ -111,10 +135,21 @@ export default function Vlog() {
   // ----------------------------------------------------
   // 4. 최종 저장 기능
   // ----------------------------------------------------
-  const handleSave = () => {
-    console.log("DB에 저장될 VLOG 데이터:", vlogList);
-    openPopup("저장 완료", "VLOG 설정이 성공적으로 저장되었습니다.");
+  const handleSave = async () => {
+    const orderedIds = vlogList.map(v => v.id);
+    try {
+      const response = await axios.put("/api/admin/vlog/order", {
+        orderedIds
+      });
+      if (response.data.success)
+        openPopup("저장 완료", "VLOG 설정이 성공적으로 저장되었습니다.");
+    } catch (error) {
+      openPopup("오류", "순서 저장 중 문제가 발생했습니다.");
+    };
   };
+
+  if (isLoading)
+    return null;
 
   return (
     <S.SetVlogContainer>

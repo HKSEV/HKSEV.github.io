@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { FiSave, FiPlus, FiTrash2, FiImage, FiHeart, FiEye } from "react-icons/fi";
 import usePopup from "@/components/contexts/PopupContext";
 import * as S from "@/assets/css/Style.style";
@@ -16,49 +17,75 @@ interface SelfieData {
 export default function Self() {
   const {openPopup, closePopup} = usePopup();
   // 🎯 상태 관리: 등록된 셀피 목록
-  const [selfies, setSelfies] = useState<SelfieData[]>([
-    {
-      id: 1,
-      imageUrl: "",
-      likes: 892,
-      views: 7921,
-      isActive: true
-    },
-    {
-      id: 2,
-      imageUrl: "",
-      likes: 530,
-      views: 4200,
-      isActive: false
-    }
-  ]);
+  const [selfies, setSelfies] = useState<SelfieData[]>([]);
   // 🎯 상태 관리: 새 셀피 등록 폼
   const [newSelfie, setNewSelfie] = useState({ likes: 0, views: 0 });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState("");
   const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get("/api/admin/selfie");
+      if (response.data.success) {
+        const formatted = response.data.data.map((s: any) => ({
+          id: s.SELFIE_IDX,
+          imageUrl: `/images/${s.FILE_NAME}`,
+          likes: s.LIKES,
+          views: s.VIEWS,
+          isActive: s.IS_ACTIVE === 'Y'
+        }));
+        setSelfies(formatted);
+      };
+    } catch (err) {
+      console.error("셀피 목록 로드 실패:", err);
+    } finally {
+      setIsLoading(false);
+    };
+  };
 
   // 이미지 첨부 및 썸네일 미리보기 처리
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setSelectedFile(file);
       setFileName(file.name);
       setPreviewUrl(URL.createObjectURL(file)); 
     };
   };
 
   // 셀피 추가
-  const handleAddSelfie = () => {
-    if (!previewUrl) {
+  const handleAddSelfie = async () => {
+    if (!previewUrl || !selectedFile) {
       openPopup("등록 오류", "셀피 이미지를 등록해주세요.");
       return;
     };
-    setSelfies([...selfies, { 
-      id: Date.now(), 
-      imageUrl: previewUrl, 
-      likes: newSelfie.likes,
-      views: newSelfie.views,
-      isActive: true 
-    }]);
+
+    const formData = new FormData();
+    formData.append("selfieImage", selectedFile);
+    formData.append("likes", String(newSelfie.likes));
+    formData.append("views", String(newSelfie.views));
+
+    try {
+      const response = await axios.post("/api/admin/selfie", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+      if (response.data.success) {
+        setNewSelfie({ likes: 0, views: 0 });
+        setSelectedFile(null);
+        setFileName("");
+        setPreviewUrl("");
+        fetchData(); // 등록 후 목록 새로고침
+      };
+    } catch (err) {
+      openPopup("오류", "셀피 등록에 실패했습니다.");
+    };
+
     setNewSelfie({ likes: 0, views: 0 });
     setFileName("");
     setPreviewUrl("");
@@ -66,8 +93,14 @@ export default function Self() {
 
   // 셀피 삭제
   const handleDelete = (id: number) => {
-    openPopup("확인", "해당 셀피 게시물을 삭제하시겠습니까?", () => {
-      setSelfies(selfies.filter(s => s.id !== id));
+    openPopup("확인", "해당 셀피 게시물을 삭제하시겠습니까?", async () => {
+      try {
+        const response = await axios.delete(`/api/admin/selfie/${id}`);
+        if (response.data.success)
+          fetchData();
+      } catch (err) {
+        openPopup("오류", "삭제 실패");
+      };
     });
   };
 
@@ -79,10 +112,23 @@ export default function Self() {
   };
 
   // 최종 저장
-  const handleSave = () => {
-    console.log("DB에 저장될 데이터:", selfies);
-    openPopup("저장 완료", "셀피 설정이 성공적으로 저장되었습니다.");
+  const handleSave = async () => {
+    const statuses = selfies.map(s => (
+      { id: s.id, isActive: s.isActive }
+    ));
+    try {
+      const response = await axios.put("/api/admin/selfie/status", {
+        statuses
+      });
+      if (response.data.success)
+        openPopup("저장 완료", "셀피 설정이 성공적으로 저장되었습니다.");
+    } catch (err) {
+      openPopup("오류", "상태 저장 실패");
+    };
   };
+
+  if (isLoading)
+    return null;
 
   return (
     <S.SelfContainer>

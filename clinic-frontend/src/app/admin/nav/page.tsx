@@ -108,7 +108,7 @@ export default function Nav() {
   };
 
   if (isLoading)
-    return <></>;
+    return null;
 
   return (
     <S.SetNavContainer>

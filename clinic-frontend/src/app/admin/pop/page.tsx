@@ -34,6 +34,7 @@ export default function Pop() {
   const [fileName, setFileName] = useState("");
   const [currentTime, setCurrentTime] = useState(new Date().getTime());
   const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
 
   // 실시간 상태 업데이트를 위한 타이머
   useEffect(() => {
@@ -62,6 +63,8 @@ export default function Pop() {
       }
     } catch (err) {
       console.error("팝업 목록 로드 에러: ", err);
+    } finally {
+      setIsLoading(false);
     };
   };
 
@@ -160,6 +163,9 @@ export default function Pop() {
     console.log("DB에 저장될 데이터:", payload);
     openPopup("저장 완료", "팝업 설정이 성공적으로 저장되었습니다.");
   };
+
+  if (isLoading)
+    return null;
 
   return (
     <S.PopContainer>
